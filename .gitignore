@@ -1,0 +1,9 @@
+build/
+third_party/
+*.tar.gz
+*.AppImage
+build-win/
+SilverGear-*.zip
+tools/i18n/
+__pycache__/
+*.pyc

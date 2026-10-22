@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Type=Application
+Name=Silver Gear
+Comment=Lanzador del juego (núcleo SwanStation)
+Exec=sh -c 'exec "$(dirname "$(readlink -f "%k")")/silvergear"'
+Terminal=false
+Categories=Game;
+StartupWMClass=silvergear

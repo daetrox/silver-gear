@@ -1,0 +1,4 @@
+Créditos de los trucos y parches (assets/cheats/*.cht, assets/patches/*.cht):
+base de datos comunitaria de DuckStation (chtdb), https://github.com/duckstation/chtdb
+Parches de Metal Gear Solid (16:9, modo NTSC, sin subtítulos): PeterDelta.
+Los derechos de cada truco y parche pertenecen a sus autores originales, tal como indica chtdb.
