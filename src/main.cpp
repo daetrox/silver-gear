@@ -3507,6 +3507,9 @@ void App::RenderCredits()
       lines.push_back({1, authors, L("Autoría del set de logros de ", "Achievement set for ") + m_ach.GameTitle()});
   }
   const std::vector<Line> rest = {
+    {0, L("FONDO DEL MENÚ", "MENU BACKGROUND"), ""},
+    {1, L("Sgt. Avery Cunningham (Ejército de EE. UU.)", "Sgt. Avery Cunningham (U.S. Army)"), L("«Arctic Angels Move through Norwegian Mountains»  ·  dominio público  ·  DVIDS", "“Arctic Angels Move through Norwegian Mountains”  ·  public domain  ·  DVIDS")},
+    {3, L("La aparición de personal militar no implica respaldo del Departamento de Defensa.", "The appearance of military personnel does not imply Department of Defense endorsement."), ""},
     {0, L("PARCHES DEL JUEGO", "GAME PATCHES"), ""},
     {1, "PeterDelta", L("16:9 nativo, modo NTSC (60 Hz) y subtítulos  ·  base de datos chtdb de DuckStation", "Native 16:9, NTSC mode (60 Hz) and subtitles  ·  DuckStation's chtdb database")},
     {0, L("TRUCOS", "CHEATS"), ""},

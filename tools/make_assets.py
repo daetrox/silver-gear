@@ -4,7 +4,6 @@
 La ilustración (1672×941) trae pintados el logotipo de Metal Gear Solid y los cinco botones del menú
 (JUGAR, LOGROS, OPCIONES, CRÉDITOS, SALIR) sobre negro. De aquí salen:
 
-  background_clean.jpg   la ilustración sin los botones (el menú los dibuja encima)
   btn_selected.png       la banda blanca (JUGAR), sin icono ni texto
   btn_normal.png         una banda oscura, sin icono ni texto
   icon_*.png             los cinco iconos, en blanco y con alfa (el shader los tiñe)
@@ -121,11 +120,7 @@ for i, name in enumerate(ICON_NAMES):
     cv2.imwrite(os.path.join(OUT, name + ".png"), np.dstack([white, (a * 255).astype(np.uint8)]))
     print("%-20s caja=(%d,%d,%d,%d) %dx%d" % (name, ix0, iy0, ix1, iy1, ix1 - ix0, iy1 - iy0))
 
-# --- 4) Fondo sin los botones ---------------------------------------------------------------------
-art = gray[300:880, 1040:SLOT_X]
-print("brillo máximo de la ilustración junto a los botones:", int(art.max()))
-clean = src.copy()
-clean[295:880, 1068:W] = 0
-cv2.imwrite(os.path.join(OUT, "background_clean.jpg"), clean, [cv2.IMWRITE_JPEG_QUALITY, 92])
+# El fondo (background_clean.jpg) ya no sale de la maqueta, cuyo arte no es libre: lo genera
+# tools/make_background.py a partir de una foto de dominio público.
 
 print("Recursos generados en", os.path.abspath(OUT))
