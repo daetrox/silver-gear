@@ -104,7 +104,7 @@ std::string DataDir()
 }
 #endif
 
-std::string SavesDir() { return DataDir() + "/memcards"; }
+std::string SavesDir() { return DataDir() + "/saves"; } // tarjetas de memoria (como el Silver Gear anterior)
 std::string StatesDir() { return DataDir() + "/states"; }
 // Carpeta con los archivos del usuario (bios/, game/). Dentro de un AppImage el programa vive en
 // un sistema de archivos de sólo lectura, así que se usa la carpeta donde está el .AppImage.
