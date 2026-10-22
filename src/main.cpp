@@ -706,7 +706,7 @@ private:
   Audio m_audio;
 
   Texture m_bg, m_btn_sel, m_row_sel, m_btn_normal; // m_row_sel: banda blanca sin separador (filas)
-  Texture m_ic_play, m_ic_ach, m_ic_opt, m_ic_quit, m_ic_credits;
+  Texture m_ic_play, m_ic_ach, m_ic_opt, m_ic_quit, m_ic_credits, m_ic_disc, m_ic_home;
 
   Screen m_screen = Screen::Menu;
   Modal m_modal = Modal::None;
@@ -836,6 +836,8 @@ bool App::Init(std::string* error)
   ok &= m_r.LoadTexture(ui + "icon_options.png", &m_ic_opt, true);
   ok &= m_r.LoadTexture(ui + "icon_quit.png", &m_ic_quit, true);
   ok &= m_r.LoadTexture(ui + "icon_credits.png", &m_ic_credits, true);
+  ok &= m_r.LoadTexture(ui + "icon_disc.png", &m_ic_disc, true);
+  ok &= m_r.LoadTexture(ui + "icon_home.png", &m_ic_home, true);
   if (!ok)
   {
     *error = L("Faltan imágenes de la interfaz en ", "Interface images missing in ") + ui;
@@ -3835,7 +3837,7 @@ void App::RenderPause()
                                      L("CARGAR", "LOAD"),            L("CAMBIAR DISCO", "SWAP DISC"),
                                      L("CONTROLES", "CONTROLS"),     L("MENÚ PRINCIPAL", "MAIN MENU"),
                                      L("SALIR", "QUIT")};
-  const Texture* icons[kPauseItems] = {&m_ic_play, &m_ic_credits, &m_ic_credits, nullptr, &m_ic_opt, nullptr, &m_ic_quit};
+  const Texture* icons[kPauseItems] = {&m_ic_play, &m_ic_credits, &m_ic_credits, &m_ic_disc, &m_ic_opt, &m_ic_home, &m_ic_quit};
   for (int i = 0; i < kPauseItems; i++)
   {
     const Rect slot = {px + 50, py + 118 + i * 94.0f, 513, 86};

@@ -114,7 +114,8 @@ for i, name in enumerate(ICON_NAMES):
     crop = src[iy0:iy1, ix0:ix1]
     g = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY).astype(np.float32)
     on_white = (i == 0)
-    a = np.clip((255.0 - g) / 200.0 if on_white else (g - 60.0) / 170.0, 0, 1)
+    # Sobre la banda blanca, el fondo (gris claro con grano) no debe dejar un recuadro: sólo cuenta lo oscuro.
+    a = np.clip((190.0 - g) / 140.0 if on_white else (g - 60.0) / 170.0, 0, 1)
     a = cv2.GaussianBlur(a, (3, 3), 0)
     white = np.full_like(crop, 255)
     cv2.imwrite(os.path.join(OUT, name + ".png"), np.dstack([white, (a * 255).astype(np.uint8)]))
