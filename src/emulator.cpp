@@ -259,9 +259,9 @@ struct Emulator::Impl
         static_cast<retro_rumble_interface*>(data)->set_rumble_state = [](unsigned port, retro_rumble_effect effect,
                                                                             uint16_t strength) -> bool {
           static uint16_t strong = 0, weak = 0;
-          if (port != 0 || !g_emu->m_pad)
+          if (static_cast<int>(port) != g_emu->m_port || !g_emu->m_pad)
             return false;
-          (effect == RETRO_RUMBLE_STRONG ? strong : weak) = strength;
+          (effect == RETRO_RUMBLE_STRONG ? strong : weak) = static_cast<uint16_t>(strength * g_emu->m_rumble / 100);
           SDL_GameControllerRumble(g_emu->m_pad, strong, weak, 200);
           return true;
         };
@@ -334,7 +334,7 @@ struct Emulator::Impl
 
   static int16_t InputState(unsigned port, unsigned device, unsigned index, unsigned id)
   {
-    if (port != 0)
+    if (static_cast<int>(port) != g_emu->m_port)
       return 0;
     const EmuInput& in = g_emu->m_input;
     switch (device & RETRO_DEVICE_MASK)
@@ -459,6 +459,7 @@ void Emulator::BuildOptions(const Config& cfg)
   opt("swanstation_Display_ShowOSDMessages", "false");
 
   opt("swanstation_Controller1_ForceAnalog", "true");
+  opt("swanstation_Controller2_ForceAnalog", "true");
   opt("swanstation_Controller_EnableRumble", "true");
   opt("swanstation_MemoryCards_Card1Type", "PerGameTitle");
   opt("swanstation_CPU_ExecutionMode", "Recompiler");
@@ -546,7 +547,10 @@ bool Emulator::Start(const Config& cfg, SDL_Window* window, SDL_GLContext ui_con
     return false;
   }
 
+  // Mando en los dos puertos: el launcher manda la entrada al que esté elegido (SetInputPort).
   g_core.retro_set_controller_port_device(0, kDeviceDualShock);
+  g_core.retro_set_controller_port_device(1, kDeviceDualShock);
+  m_port = 0;
 
   ApplyCodes(m_disc_serials.front());
 

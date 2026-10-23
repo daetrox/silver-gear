@@ -424,11 +424,12 @@ enum PauseItem
   PAUSE_SAVE,
   PAUSE_LOAD,
   PAUSE_DISC,
+  PAUSE_PORT, // mando en el puerto 2 (truco contra Psycho Mantis)
   PAUSE_CONTROLS,
   PAUSE_MENU,
   PAUSE_QUIT,
 };
-constexpr int kPauseItems = 7;
+constexpr int kPauseItems = 8;
 
 // Opciones: lista de categorías (página -1) y sus páginas.
 enum OptCategoryId
@@ -670,6 +671,7 @@ private:
   // Pantalla de carga: el códec sintonizando la frecuencia 140.85 (`t` en segundos desde que empezó).
   void RenderLoading(float t, float alpha);
   float m_load_t = -1; // >= 0 durante la pantalla de carga de la partida
+  bool m_hint_reveal = false; // ayuda de CONTROLES: frecuencia de Meryl a la vista
   SlotInfo m_slots[kSlots];
   int m_slot_sel = 1, m_slot_last = 1; // ranura elegida en el selector y la última usada (F5/F7)
   bool m_slots_save = false;           // el selector guarda (o carga)
@@ -1272,7 +1274,15 @@ void App::ActivatePause(int index)
       if (m_emu.DiscCount() >= 2)
         resume();
       break;
-    case PAUSE_CONTROLS: m_screen = Screen::Controls; break;
+    case PAUSE_PORT:
+      m_emu.SetInputPort(1 - m_emu.InputPort());
+      Toast(m_emu.InputPort() == 1 ? L("Mando en el puerto 2", "Controller in port 2") : L("Mando en el puerto 1", "Controller in port 1"));
+      resume();
+      break;
+    case PAUSE_CONTROLS:
+      m_screen = Screen::Controls;
+      m_hint_reveal = false;
+      break;
     case PAUSE_MENU:
       StopGame(true);
       m_screen = Screen::Menu;
@@ -1808,6 +1818,10 @@ void App::Accept()
     case Screen::Game:
       if (m_paused)
         ActivatePause(m_pause_sel);
+      break;
+    case Screen::Controls:
+      m_hint_reveal = !m_hint_reveal;
+      m_audio.Play(m_hint_reveal ? Sfx::Select : Sfx::Cancel);
       break;
     default: break;
   }
@@ -3957,7 +3971,34 @@ void App::RenderControls()
                           : L("F5 guardar  ·  F7 cargar  ·  F8 cambiar de disco  ·  F11 pantalla completa",
                               "F5 save  ·  F7 load  ·  F8 swap disc  ·  F11 fullscreen"),
            IX(c0), IY(y + 14), IS(22), kDim);
-  RenderHints({{PsButton::Back, L("Volver", "Back")}}, IX(px + pw - 30), IY(py + ph - 64));
+
+  // Ayudas sin destripes, en una pantalla de códec a la derecha.
+  const float hx = px + pw + 30, hy = py, hw = 440, hh = 420;
+  CodecBox(IX(hx), IY(hy), IS(hw), IS(hh));
+  m_r.Text(m_r.mono, L("AYUDA SIN DESTRIPES", "SPOILER-FREE HELP"), IX(hx + 26), IY(hy + 20), IS(24), kCodec);
+  float ty = hy + 70;
+  auto para = [&](const std::string& title, const std::string& text) {
+    m_r.Text(m_r.brush, title, IX(hx + 26), IY(ty), IS(24), kCodecText);
+    ty += 40;
+    for (const std::string& line : Wrap(m_r.ui, text, IS(22), IS(hw - 52)))
+    {
+      m_r.Text(m_r.ui, line, IX(hx + 26), IY(ty), IS(22), WithAlpha(kCodecText, 0.85f));
+      ty += 30;
+    }
+    ty += 18;
+  };
+  para(L("Frecuencia de Meryl", "Meryl's frequency"),
+       L("Está en la contraportada de la caja del juego.", "It's on the back of the game's case."));
+  m_r.Text(m_r.mono, m_hint_reveal ? "140.15" : L("[ Aceptar: mostrar ]", "[ Accept: reveal ]"), IX(hx + 26), IY(ty - 10),
+           IS(m_hint_reveal ? 44 : 22), kCodec);
+  ty += m_hint_reveal ? 60 : 36;
+  para("Psycho Mantis",
+       L("Si te lee la mente, haz lo que se hacía en la consola: cambia el mando al puerto 2 desde la pausa "
+         "(MANDO: PUERTO 2) y vuelve al 1 al terminar.",
+         "If he reads your mind, do what you did on the console: move the controller to port 2 from the pause "
+         "menu (PAD: PORT 2) and switch back to 1 afterwards."));
+  RenderHints({{PsButton::Accept, L("Mostrar frecuencia", "Reveal frequency")}, {PsButton::Back, L("Volver", "Back")}},
+              IX(px + pw - 30), IY(py + ph - 64));
 }
 
 void App::RenderAchievements()
@@ -4151,14 +4192,15 @@ void App::RenderPause()
   const std::string disc = discs >= 2 ? (LangEn() ? "Disc " : "Disco ") + std::to_string(m_emu.CurrentDisc() + 1) + " / 2"
                                       : std::string(L("Un solo disco", "Single disc"));
   m_r.Text(m_r.ui, disc, IX(px + pw - 44), IY(py + 44), IS(24), kDim, Align::Right);
-  const char* labels[kPauseItems] = {L("REANUDAR", "RESUME"),        L("GUARDAR", "SAVE"),
-                                     L("CARGAR", "LOAD"),            L("CAMBIAR DISCO", "SWAP DISC"),
-                                     L("CONTROLES", "CONTROLS"),     L("MENÚ PRINCIPAL", "MAIN MENU"),
-                                     L("SALIR", "QUIT")};
-  const Texture* icons[kPauseItems] = {&m_ic_play, &m_ic_credits, &m_ic_credits, &m_ic_disc, &m_ic_opt, &m_ic_home, &m_ic_quit};
+  const std::string port = m_emu.InputPort() == 1 ? L("MANDO: PUERTO 2", "PAD: PORT 2") : L("MANDO: PUERTO 1", "PAD: PORT 1");
+  const char* labels[kPauseItems] = {L("REANUDAR", "RESUME"),    L("GUARDAR", "SAVE"),           L("CARGAR", "LOAD"),
+                                     L("CAMBIAR DISCO", "SWAP DISC"), port.c_str(),           L("CONTROLES", "CONTROLS"),
+                                     L("MENÚ PRINCIPAL", "MAIN MENU"), L("SALIR", "QUIT")};
+  const Texture* icons[kPauseItems] = {&m_ic_play, &m_ic_credits, &m_ic_credits, &m_ic_disc,
+                                       &m_ic_opt,  &m_ic_opt,     &m_ic_home,    &m_ic_quit};
   for (int i = 0; i < kPauseItems; i++)
   {
-    const Rect slot = {px + 50, py + 118 + i * 94.0f, 513, 86};
+    const Rect slot = {px + 50, py + 112 + i * 86.0f, 513, 80};
     const bool blocked = (m_hardcore_session && (i == PAUSE_SAVE || i == PAUSE_LOAD)) || (i == PAUSE_DISC && discs < 2);
     DrawMenuButton(slot, labels[i], icons[i], m_sel_anim[i], 30, true, blocked ? 0.35f : 1.0f);
     Hot(IR(slot), 2, i, [this, i](float, float) { ActivatePause(i); });

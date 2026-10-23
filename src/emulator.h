@@ -46,6 +46,11 @@ public:
   bool LoadState(const std::string& path);
   void SetVolume(int volume) { m_volume = volume; }
   void SetRumbleTarget(SDL_GameController* pad) { m_pad = pad; }
+  // Puerto de la consola en el que está «enchufado» el mando (0 o 1). En MGS, pasarlo al 1 es el
+  // truco de la consola original contra Psycho Mantis.
+  void SetInputPort(int port) { m_port = port; }
+  int InputPort() const { return m_port; }
+  void SetRumbleStrength(int percent) { m_rumble = percent; }
   // Códigos de trucos que se aplicarán en el próximo Start().
   void SetCheats(std::vector<std::string> codes) { m_cheats = std::move(codes); }
 
@@ -113,6 +118,8 @@ private:
   SDL_AudioDeviceID m_audio = 0;
   int m_volume = 100;
   SDL_GameController* m_pad = nullptr;
+  int m_port = 0;
+  int m_rumble = 100; // intensidad de la vibración, 0..100 %
 
   EmuInput m_input;
   uint64_t m_frames_run = 0;
