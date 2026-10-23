@@ -3486,7 +3486,7 @@ void App::RenderCredits()
     {2, "SILVER GEAR", ""},
     {3, std::string(L("Launcher de Metal Gear Solid  ·  ", "Metal Gear Solid launcher  ·  ")) + kVersion, ""},
     {0, L("PROYECTO", "PROJECT"), ""},
-    {1, "daetrox", L("Idea, dirección y diseño del launcher", "Launcher idea, direction and design")},
+    {1, "daetrox", L("Idea, dirección, diseño e ilustración del launcher", "Launcher idea, direction, design and artwork")},
     {1, "Claude (Anthropic)", L("Programación, en colaboración con daetrox", "Programming, in collaboration with daetrox")},
     {1, L("Composición original", "Original composition"), L("Música y efectos de sonido, sintetizados por el propio launcher", "Music and sound effects, synthesised by the launcher itself")},
     {0, L("EMULACIÓN", "EMULATION"), ""},
@@ -3508,8 +3508,7 @@ void App::RenderCredits()
   }
   const std::vector<Line> rest = {
     {0, L("FONDO DEL MENÚ", "MENU BACKGROUND"), ""},
-    {1, L("Sgt. Avery Cunningham (Ejército de EE. UU.)", "Sgt. Avery Cunningham (U.S. Army)"), L("«Arctic Angels Move through Norwegian Mountains»  ·  dominio público  ·  DVIDS", "“Arctic Angels Move through Norwegian Mountains”  ·  public domain  ·  DVIDS")},
-    {3, L("La aparición de personal militar no implica respaldo del Departamento de Defensa.", "The appearance of military personnel does not imply Department of Defense endorsement."), ""},
+    {1, "daetrox", L("Ilustración de la base nevada", "Snowy base illustration")},
     {0, L("PARCHES DEL JUEGO", "GAME PATCHES"), ""},
     {1, "PeterDelta", L("16:9 nativo, modo NTSC (60 Hz) y subtítulos  ·  base de datos chtdb de DuckStation", "Native 16:9, NTSC mode (60 Hz) and subtitles  ·  DuckStation's chtdb database")},
     {0, L("TRUCOS", "CHEATS"), ""},

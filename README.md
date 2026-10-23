@@ -13,11 +13,12 @@
 </p>
 
 > [!WARNING]
-> **En desarrollo y sin publicar.** El fondo del menú ya es libre: lo genera `tools/make_background.py`
-> a partir de una foto de dominio público del Ejército de EE. UU. (`tools/photo/CREDITOS.txt`) con el
-> rótulo propio «SILVER GEAR». Las bandas y los iconos de los botones siguen saliendo de la maqueta
-> (`tools/source.png`, basada en un fondo de Alpha Coders de uso privado): hay que confirmar que son
-> propios o rehacerlos antes de distribuir nada.
+> **En desarrollo y sin publicar.** El fondo del menú lo genera `tools/make_background.py` a partir de
+> la ilustración de la base nevada de daetrox (`tools/photo/base-nevada.png`), con el rótulo propio
+> «SILVER GEAR». Para distribuir: `make_background.py --publicable` borra el emblema del zorro (recuerda
+> al de FOXHOUND, de Konami); si la ilustración se hizo con IA, revisar los términos de la herramienta.
+> Las bandas y los iconos de los botones siguen saliendo de la maqueta antigua (`tools/source.png`):
+> confirmar que son propios antes de publicar.
 
 ---
 
@@ -44,7 +45,7 @@ el launcher de *Tenchu 2*, con la misma arquitectura.
 | ⏸️ **Menú de pausa** | Reanudar, guardar/cargar, cambiar de disco, controles, menú principal y salir. Esc, L3+R3 o el botón central. Nunca roba un botón del juego. |
 | 🏆 **Logros sin conexión** | RetroAchievements: se descargan una vez y después se juegan *offline*. |
 | 🧪 **Trucos** | Los de la base de datos chtdb de DuckStation, con las variantes (tarjeta de nivel 1–7, temperatura de la tarjeta PAL…). |
-| ❄️ **Menú ártico** | Montañas de Noruega de noche con soldados de camuflaje invernal (foto de dominio público), nieve con viento; español e inglés. |
+| ❄️ **Menú ártico** | Base militar en la montaña nevada con soldados de camuflaje invernal, nieve con viento; español e inglés. |
 
 ## Discos
 
@@ -84,7 +85,7 @@ para no tocar tu partida.
 - **SwanStation** (GPL-3.0), **OpenBIOS** de PCSX-Redux (MIT), **rcheevos** (MIT), **SDL2** (zlib), **stb** (dominio público).
 - **PeterDelta** y la comunidad de **chtdb** — parches y trucos.
 - Fuentes **Russo One** y **Oswald** (SIL OFL 1.1).
-- Foto del fondo: Sgt. Avery Cunningham, Ejército de EE. UU. (dominio público, DVIDS 8299563).
+- Fondo: ilustración de daetrox. Alternativa libre (`--noruega`): foto del Sgt. Avery Cunningham, Ejército de EE. UU. (dominio público, DVIDS 8299563).
 
 *Metal Gear Solid* es una marca registrada de Konami Digital Entertainment. Este proyecto no está
 afiliado a Konami. Software libre (GPL-3.0), sin fines de lucro.

@@ -1,4 +1,8 @@
-arctic-angels-norway.jpg
+base-nevada.png  (fondo por defecto)
+  Ilustración de la base militar nevada aportada por daetrox (preview-fondos/limpia.png).
+  tools/make_background.py le borra el texto ilegible del emblema y, con --publicable, el emblema.
+
+arctic-angels-norway.jpg  (alternativa: --noruega)
   «Arctic Angels Move through Norwegian Mountains» (DVIDS 8299563)
   U.S. Army 11th Airborne Division, foto del Sgt. Avery Cunningham.
   Obra del Gobierno de EE. UU.: dominio público.
