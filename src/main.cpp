@@ -52,6 +52,9 @@ const Color kGold = {1.0f, 0.78f, 0.3f, 1.0f};   // puntos y contadores
 const Color kSilver = {0.78f, 0.8f, 0.83f, 1.0f}; // filetes de los paneles
 const Color kInk = {0.06f, 0.06f, 0.06f, 1.0f};   // texto sobre la banda blanca (seleccionada)
 const Color kPanelBg = {0.03f, 0.03f, 0.035f, 0.92f};
+const Color kCodecBg = {0.015f, 0.06f, 0.04f, 0.93f};  // pantalla del códec
+const Color kCodec = {0.45f, 1.0f, 0.62f, 1.0f};       // verde del códec (texto y borde)
+const Color kCodecText = {0.82f, 1.0f, 0.88f, 1.0f};
 
 Color WithAlpha(Color c, float a) { return {c.r, c.g, c.b, c.a * a}; }
 
@@ -604,6 +607,14 @@ private:
   void DrawMenuButton(const Rect& slot, const std::string& label, const Texture* icon, float sel, float font,
                       bool own_background, float alpha = 1.0f, float dx = 0.0f, float reserve = 0.0f);
   void Panel(float x, float y, float w, float h);
+  // Recuadro con estilo de pantalla del códec, en píxeles de pantalla.
+  void CodecBox(float x, float y, float w, float h, float alpha = 1.0f)
+  {
+    m_r.Rect(x, y, w, h, UiMode::Codec, WithAlpha(kCodecBg, alpha), WithAlpha(kCodec, alpha));
+  }
+  // Pantalla de carga: el códec sintonizando la frecuencia 140.85 (`t` en segundos desde que empezó).
+  void RenderLoading(float t, float alpha);
+  float m_load_t = -1; // >= 0 durante la pantalla de carga de la partida
   void DimScreen(float a);
   std::vector<std::string> Wrap(const Font& f, const std::string& text, float size, float max_w);
   std::string Truncate(const Font& f, const std::string& text, float size, float max_w);
@@ -1063,11 +1074,14 @@ void App::StartGame(bool resume)
   if (m_hardcore_session)
     resume = false;
 
-  // Un frame en negro mientras arranca el núcleo.
+  // La pantalla de carga mientras arranca el núcleo (que bloquea un momento) y los primeros segundos de
+  // la partida, que con el arranque rápido son negros.
   m_r.BeginFrame(m_w, m_h, m_time);
   glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT);
+  RenderLoading(0, 1);
   SDL_GL_SwapWindow(m_window);
+  m_load_t = 0;
 
   m_audio.Play(Sfx::Start);
   std::vector<std::string> cheats = m_hardcore_session ? std::vector<std::string>{} : ActiveCheatCodes();
@@ -2335,6 +2349,12 @@ void App::Update(float dt)
     m_credits_scroll += (m_credits_target - m_credits_scroll) * std::min(1.0f, dt * 8.0f);
   }
 
+  if (m_load_t >= 0)
+  {
+    m_load_t += dt;
+    if (m_load_t > 2.5f || m_screen != Screen::Game)
+      m_load_t = -1;
+  }
   if (m_screen == Screen::Game)
   {
     m_mouse_idle += dt;
@@ -2384,6 +2404,8 @@ void App::Render()
     m_tb_lang = m_lang_menu = {};
     m_lang_open = false;
     RenderGame();
+    if (m_load_t >= 0)
+      RenderLoading(m_load_t, 1.0f - Smooth(1.9f, 2.5f, m_load_t));
     if (m_screen == Screen::Controls)
       RenderControls();
     else if (m_paused)
@@ -3866,12 +3888,13 @@ void App::RenderDialog()
   DimScreen(0.55f);
   const float w = 800, h = 380;
   const float x = std::max(40.0f, (m_w / m_s - w) / 2), y = (kImgH - h) / 2;
-  Panel(x, y, w, h);
-  m_r.TextCentered(m_r.display, "!", IX(x + w - 70), IY(y + 70), IS(90), WithAlpha(kRed, 0.85f));
-  float ty = y + 42;
+  CodecBox(IX(x), IY(y), IS(w), IS(h));
+  m_r.Text(m_r.mono, "CODEC  ·  140.85", IX(x + 30), IY(y + 18), IS(22), WithAlpha(kCodec, 0.8f));
+  m_r.TextCentered(m_r.display, "!", IX(x + w - 70), IY(y + 80), IS(90), WithAlpha(kRed, 0.9f));
+  float ty = y + 62;
   for (const std::string& line : Wrap(m_r.ui, m_dialog, IS(27), IS(w - 160)))
   {
-    m_r.Text(m_r.ui, line, IX(x + 46), IY(ty), IS(27), kWhite);
+    m_r.Text(m_r.ui, line, IX(x + 46), IY(ty), IS(27), kCodecText);
     ty += 38;
   }
   RenderHints({{PsButton::Accept, L("Aceptar", "Accept")}}, IX(x + w - 40), IY(y + h - 66));
@@ -3884,10 +3907,10 @@ void App::RenderToast()
   const float a = std::min(1.0f, m_toast_time * 2.0f);
   const float fs = IS(28);
   const std::string text = Truncate(m_r.ui, m_toast, fs, m_w * 0.7f);
-  const float w = m_r.TextWidth(m_r.ui, text, fs) + IS(130);
+  const float w = m_r.TextWidth(m_r.ui, text, fs) + IS(90);
   const float x = (m_w - w) / 2, y = m_h - IS(170);
-  m_r.Sprite(m_row_sel, x, y, w, IS(80), {1, 1, 1, a});
-  m_r.Text(m_r.ui, text, m_w / 2.0f, y + IS(19), fs, WithAlpha(kInk, a), Align::Center);
+  CodecBox(x, y, w, IS(72), a);
+  m_r.Text(m_r.ui, text, m_w / 2.0f, y + IS(15), fs, WithAlpha(kCodecText, a), Align::Center);
 }
 
 void App::RenderPopups()
@@ -3903,17 +3926,45 @@ void App::RenderPopups()
     const float alpha = std::min(in, out);
     const float w = IS(580), h = IS(118);
     const float x = m_w - w - IS(30) + (1.0f - in) * IS(80);
-    m_r.Rect(x, y, w, h, UiMode::Panel, WithAlpha(kPanelBg, 1.03f * alpha), WithAlpha(kGold, alpha));
+    CodecBox(x, y, w, h, alpha);
     m_ach.LoadIcon(*a, m_r);
     if (a->icon.id)
       m_r.Sprite(a->icon, x + IS(22), y + IS(19), IS(80), IS(80), {1, 1, 1, alpha});
-    m_r.Text(m_r.ui, L("¡Logro desbloqueado!", "Achievement unlocked!"), x + IS(122), y + IS(14), IS(23), WithAlpha(kGold, alpha));
+    m_r.Text(m_r.mono, L("¡LOGRO DESBLOQUEADO!", "ACHIEVEMENT UNLOCKED!"), x + IS(122), y + IS(14), IS(22), WithAlpha(kCodec, alpha));
     m_r.Text(m_r.ui, Truncate(m_r.ui, a->Title(), IS(29), w - IS(230)), x + IS(122), y + IS(46), IS(29),
              WithAlpha(kWhite, alpha));
     m_r.Text(m_r.ui, std::to_string(a->points) + " pts", x + w - IS(22), y + IS(14), IS(23), WithAlpha(kGold, alpha),
              Align::Right);
     y += h + IS(12);
   }
+}
+
+void App::RenderLoading(float t, float alpha)
+{
+  if (alpha <= 0.001f)
+    return;
+  m_r.Rect(0, 0, static_cast<float>(m_w), static_cast<float>(m_h), UiMode::Solid, {0, 0, 0, alpha});
+  // La pantalla del códec, centrada, con la frecuencia que se sintoniza en el primer medio segundo.
+  const float w = IS(560), h = IS(300), x = (m_w - w) / 2, y = (m_h - h) / 2 - IS(20);
+  CodecBox(x, y, w, h, alpha);
+  const float tune = std::min(1.0f, t / 0.6f);
+  char freq[16];
+  std::snprintf(freq, sizeof(freq), "%.2f", 140.85 - (1.0 - tune) * 2.4 + (tune < 1 ? 0.03 * std::sin(t * 60.0) : 0.0));
+  m_r.Text(m_r.mono, "PTT", x + IS(26), y + IS(20), IS(24), WithAlpha(kCodec, 0.7f * alpha));
+  m_r.Text(m_r.mono, "MEMORY", x + w - IS(26), y + IS(20), IS(24), WithAlpha(kCodec, 0.7f * alpha), Align::Right);
+  m_r.Text(m_r.mono, freq, x + w / 2, y + IS(70), IS(110), WithAlpha(kCodec, alpha), Align::Center);
+  // Barras de señal que se llenan.
+  const int bars = 10;
+  for (int i = 0; i < bars; i++)
+  {
+    const float on = Clamp01(tune * bars - i);
+    const float bh = IS(8 + i * 3.5f);
+    m_r.Rect(x + IS(60) + i * IS(18), y + h - IS(54) - bh, IS(12), bh, UiMode::Solid,
+             WithAlpha(kCodec, (0.2f + 0.8f * on) * alpha));
+  }
+  const bool blink = std::fmod(t, 0.8f) < 0.5f;
+  m_r.Text(m_r.mono, L("CONECTANDO", "CONNECTING") + std::string(blink ? "..." : ""), x + w - IS(40), y + h - IS(70),
+           IS(26), WithAlpha(kCodecText, alpha), Align::Right);
 }
 
 // ------------------------------------------------------------------------------------------------

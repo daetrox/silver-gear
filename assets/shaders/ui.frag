@@ -1,5 +1,5 @@
 #version 330 core
-// Elementos de interfaz con estética de tinta y pincel japonés.
+// Elementos de interfaz: trazos de tinta, iconos, paneles y la pantalla del códec.
 uniform vec2 uResolution;
 uniform float uTime;
 uniform int uMode;
@@ -235,6 +235,25 @@ vec4 panel(vec2 uv)
   return vec4(c, a * uColor.a);
 }
 
+// --- Pantalla del códec: fondo verde oscuro, líneas de barrido, borde y esquinas marcadas ---
+vec4 codec(vec2 uv)
+{
+  vec2 px = uv * uRect.zw;
+  float scan = 0.82 + 0.18 * step(1.5, mod(px.y, 3.0));                  // líneas de barrido
+  float roll = 0.04 * smoothstep(0.0, 0.08, fract(uv.y * 0.7 - uTime * 0.12)); // franja que baja
+  vec3 c = uColor.rgb * (scan + roll);
+  // Borde fino y esquinas en «L» más gruesas.
+  vec2 e = min(px, uRect.zw - px);
+  float border = 1.0 - smoothstep(1.0, 2.2, min(e.x, e.y));
+  float cl = 18.0;
+  float corner = (1.0 - smoothstep(3.0, 4.2, min(e.x, e.y))) * step(min(max(e.x, e.y), 999.0), cl);
+  float inner = (1.0 - smoothstep(0.0, 22.0, min(e.x, e.y))) * 0.18;       // brillo hacia el borde
+  c += uColor2.rgb * inner;
+  float edge = max(border * 0.75, corner);
+  c = mix(c, uColor2.rgb, edge * uColor2.a);
+  return vec4(c, max(uColor.a, edge * uColor2.a));
+}
+
 // --- Barrido de tinta a pantalla completa (apertura y cierre) ---
 // uParam.x = progreso 0..1: a la derecha del borde de pincel queda negro.
 vec4 inkWipe(vec2 uv)
@@ -289,6 +308,7 @@ void main()
   else if (uMode == 7) fragColor = texture(uTex, uv) * uColor;
   else if (uMode == 8) fragColor = padGlyph(uv);
   else if (uMode == 10) fragColor = inkWipe(uv);
+  else if (uMode == 11) fragColor = codec(uv);
   else if (uMode == 9)
   {
     vec4 t = texture(uTex, uv);

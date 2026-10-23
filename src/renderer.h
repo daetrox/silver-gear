@@ -24,6 +24,7 @@ enum class UiMode : int
   PadGlyph = 8,
   SpriteGray = 9,
   InkWipe = 10,
+  Codec = 11, // pantalla del códec: verde oscuro con líneas de barrido y esquinas (uColor2 = borde)
 };
 
 enum class Icon : int
@@ -102,7 +103,7 @@ public:
   // Centra el texto en (cx, cy) usando la caja real de los glifos (útil para signos sueltos).
   void TextCentered(const Font& font, const std::string& text, float cx, float cy, float size, Color c);
 
-  Font ui, display, brush; // texto, signos decorativos grandes y títulos/botones
+  Font ui, display, brush, mono; // texto, signos grandes, títulos/botones y pantalla del códec
 
   int Width() const { return m_w; }
   int Height() const { return m_h; }

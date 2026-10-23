@@ -224,6 +224,8 @@ bool Renderer::Init(const std::string& assets_dir, std::string* error)
   // Russo One: la letra de los botones de la maqueta (gruesa y ancha).
   if (!LoadFont(brush, fonts + "RussoOne-Regular.ttf", 72, latin, error)) return false;
   brush.tracking = 0.09f; // espaciada, como en la maqueta
+  // Share Tech Mono: la letra de la pantalla del códec.
+  if (!LoadFont(mono, fonts + "ShareTechMono-Regular.ttf", 56, latin, error)) return false;
   // La misma, grande, sólo para los signos decorativos (números de categoría, «!»).
   if (!LoadFont(display, fonts + "RussoOne-Regular.ttf", 180, DecodeUtf8("0123456789!?·"), error)) return false;
   return true;
@@ -231,7 +233,7 @@ bool Renderer::Init(const std::string& assets_dir, std::string* error)
 
 void Renderer::Shutdown()
 {
-  for (Font* f : {&ui, &display, &brush})
+  for (Font* f : {&ui, &display, &brush, &mono})
     if (f->texture)
       glDeleteTextures(1, &f->texture);
   glDeleteProgram(m_bg_prog);
