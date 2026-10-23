@@ -2452,9 +2452,11 @@ void App::Update(float dt)
     if (m_speed_t >= 5.0f)
     {
       const double ran = static_cast<double>(m_emu.FramesRun() - m_speed_frames);
-      if (m_play_t > 12.0f && !m_speed_warned && ran < m_emu.TargetFps() * m_speed_t * 0.9)
+      // Desde los 25 s: al arrancar, el parche de 60 Hz cambia la velocidad objetivo hacia el segundo 20.
+      if (m_play_t > 25.0f && !m_speed_warned && ran < m_emu.TargetFps() * m_speed_t * 0.9)
       {
         m_speed_warned = true;
+        SDL_Log("Emulación lenta: %.0f de %.0f frames en %.1f s", ran, m_emu.TargetFps() * m_speed_t, m_speed_t);
         Toast(L("El juego va lento: baja la resolución interna en OPCIONES › GRÁFICOS",
                 "The game is running slow: lower the internal resolution in OPTIONS › GRAPHICS"));
       }
