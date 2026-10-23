@@ -1,11 +1,62 @@
 #include "translate.h"
+#include "config.h"
+#include "platform.h"
 
+#include <cstdint>
+#include <cstdlib>
+#include <fstream>
+#include <unordered_map>
 #include <utility>
 
-// Los logros de Metal Gear Solid se muestran todavía en el idioma en que los publica
-// RetroAchievements (inglés): falta un glosario con los nombres oficiales de la versión española.
-std::string TranslateAchievementTitle(const std::string& title) { return title; }
-std::string TranslateAchievementDescription(const std::string& description) { return description; }
+namespace {
+
+// Hash FNV-1a de 32 bits del texto sin espacios en los extremos (el mismo que
+// tools/make_achievements_es.py).
+uint32_t Fnv1a(const std::string& text)
+{
+  size_t a = 0, b = text.size();
+  while (a < b && (text[a] == ' ' || text[a] == '\t'))
+    a++;
+  while (b > a && (text[b - 1] == ' ' || text[b - 1] == '\t' || text[b - 1] == '\r' || text[b - 1] == '\n'))
+    b--;
+  uint32_t h = 0x811C9DC5u;
+  for (size_t i = a; i < b; i++)
+    h = (h ^ static_cast<uint8_t>(text[i])) * 0x01000193u;
+  return h;
+}
+
+// Traducciones de assets/lang/logros_es.txt: «T» títulos y «D» descripciones, por el hash del texto
+// inglés. En el repositorio no hay ningún texto de RetroAchievements.
+const std::unordered_map<uint64_t, std::string>& Table()
+{
+  static const std::unordered_map<uint64_t, std::string> table = [] {
+    std::unordered_map<uint64_t, std::string> t;
+    std::ifstream in(Platform::Path(Paths::AssetsDir() + "/lang/logros_es.txt"));
+    std::string line;
+    while (std::getline(in, line))
+    {
+      const size_t tab = line.find('\t');
+      if (line.size() < 10 || (line[0] != 'T' && line[0] != 'D') || tab != 9)
+        continue;
+      const uint64_t kind = line[0] == 'T' ? 1ull << 32 : 2ull << 32;
+      t[kind | std::strtoul(line.substr(1, 8).c_str(), nullptr, 16)] = line.substr(10);
+    }
+    return t;
+  }();
+  return table;
+}
+
+std::string Lookup(char kind, const std::string& en)
+{
+  const auto& t = Table();
+  const auto it = t.find((kind == 'T' ? 1ull << 32 : 2ull << 32) | Fnv1a(en));
+  return it == t.end() ? en : it->second; // si el set cambia, lo nuevo se queda en inglés
+}
+
+} // namespace
+
+std::string TranslateAchievementTitle(const std::string& title) { return Lookup('T', title); }
+std::string TranslateAchievementDescription(const std::string& description) { return Lookup('D', description); }
 
 std::string TranslateCheatName(const std::string& name)
 {

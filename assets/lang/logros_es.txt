@@ -1,0 +1,225 @@
+# Logros de Metal Gear Solid en español (hash FNV-1a del texto inglés → traducción)
+T68033354	¡Es la bomba!
+Da5734d09	Pon un C4 en la espalda de un guardia y alcanza a otro guardia con la explosión
+T7803ce9b	Caja explosiva
+D59f59245	Atrae a un guardia hasta tu claymore con la caja sin herirte en la explosión
+T269b6dad	Qué alivio
+D47439bad	Resfríate y cúrate con la medicina
+T7d082ceb	No eres un hombre de verdad
+De1575937	Consigue el chaleco antibalas en el primer sitio donde aparece
+T376c1d93	Métete en la caja y lo entenderás
+Ded2398c3	Usa la caja para viajar en camión al helipuerto, al edificio nuclear y al campo nevado en una misma sesión
+T804368ed	¡Aquí tienes tu sigilo!
+D4cbff453	Sobrevive cinco minutos seguidos en estado de alerta (no cuentan el muelle ni las escenas)
+Tee605ab4	Dice el listillo...
+D091e8d0f	Toma el pelo a Mei Ling hasta que se harte de ti
+Taf468b34	Oídos indiscretos
+D4e213404	Entra en el conducto de ventilación de la 1.ª planta y escucha a los guardias hablar del intruso
+Td6ec7ae5	¡No estoy siendo nada sigiloso!
+Dec93acb3	Entra en el conducto de ventilación de la 2.ª planta y escucha a los guardias hablar del intruso
+Te4ad5ecb	Algo se me escapa
+D683fb67c	Entra en cualquiera de los conductos de ventilación y escucha a los guardias sin haber sido descubierto nunca
+Te20412e4	Ojos de novata
+D9c729bec	Únete a la misteriosa soldado y abríos paso a tiros fuera de la prisión
+T6bcf4dd3	¿Serías capaz de dispararme, novata?
+D15ebce0f	Llega al combate de la prisión sin haber cogido la SOCOM
+T0883f1aa	¡No pienses! ¡Dispara!
+D05f82221	Mata a un solo enemigo en el combate de la prisión (sin bandana)
+T25d17499	Shalashaska
+D40e486c3	Derrota a Revolver Ocelot y rescata al presidente de ArmsTech
+Tbb73002b	Me rindo. ¿Por qué?
+D757dad52	Derrota a Revolver Ocelot sólo con la SOCOM y sin disparar más de 12 balas (sin bandana)
+T20acdcc0	¡Eres bueno!
+D63daf2d4	Derrota a Ocelot antes de que pueda recargar el revólver (sin bandana)
+T626d7a91	¡Tanque, gracias!
+D41625dd6	Destruye el tanque M-1 y entra en el edificio de almacenamiento de cabezas nucleares
+T2db7fe27	¡Por la escotilla!
+D1e416388	Destruye el tanque con sólo dos granadas (sin bandana)
+T85310d2b	A distancia
+Dde488d66	Destruye el panel eléctrico de un solo disparo (sin bandana)
+T9e8ed436	Recuerdo ese puñetazo...
+Dfd1d8012	Derrota al ninja cíborg y descubre quién es en realidad
+Ta4c677d6	¡Hazme más daño!
+D684cc88b	Derrota al ninja sin recibir daño (sin bandana)
+Tbf2b65f3	Yo decido mi futuro
+D9cae072b	Derrota a Psycho Mantis y acaba con sus juegos de una vez por todas
+T0c9fdc15	¡Sin cables!
+D88b8bc58	Derrota a Psycho Mantis con el otro método
+T030427a3	¡No puedo leerte!
+Db53502d6	Derrota a Psycho Mantis sin recibir daño (sin bandana)
+T9953a830	El verdadero poder
+D8cb2b8b6	Mantis sabe a qué juegos te gusta jugar
+Tef23ed6b	¿Te he hecho esperar?
+D27d6b04d	Derrota a Sniper Wolf en la torre de comunicaciones
+Te16b09b7	Di que no
+D67814a52	Derrota a Sniper Wolf sin usar diazepam ni raciones (sin bandana)
+Tcf49ccdf	He pasado por cosas peores
+D6caa9509	Resiste la tortura y escapa de la prisión
+Tfcfa852f	De nuevo en marcha
+D50e10021	Resiste la tortura y escapa sin haber guardado la partida en todo el juego
+Tba258826	Come clavos y repite
+D1b9004e0	Resiste cinco sesiones de tortura en dificultad Extremo
+Tcb5c2cb5	Fuera de forma
+D18b2da47	Sube a la torre de comunicaciones
+T04edc203	¡El rey de las escaleras!
+D47d0ed5a	Sube a la torre de comunicaciones sin matar a nadie (sin bandana)
+T2da61086	Rápel sin rasguños
+D20bd025d	Completa el descenso en rápel sin recibir daño más de dos veces
+T73abbb94	Es un tiro largo, pero...
+D042f015d	Derrota a los soldados de la pasarela de la torre sólo con el PSG-1 y sin recibir daño
+Tbd3aa1be	Derribado
+D1a448248	Derriba el Hind
+T4aa4be3c	Matamoscas
+Db7b8fa98	Derriba el Hind sin recibir daño (sin bandana)
+T4b026f17	5-4=1
+Dcad48b33	Sobrevive al viaje en el ascensor de la torre
+T42538ae0	Antes de empezar, ¿alguien quiere bajarse?
+D8bae1247	Sobrevive al viaje en el ascensor de la torre sin usar armas (sin bandana)
+T5eab8af6	Nacida en el campo de batalla
+Deaca68f8	Derrota a Sniper Wolf en el campo nevado
+T9acad888	Blanco móvil
+D990aa587	Dispara a Sniper Wolf con el PSG-1 mientras corre por el campo nevado (sin bandana)
+Ta41a3c0f	Pero yo soy mejor
+Deb12767d	Derrota a Sniper Wolf en el campo nevado sólo con el PSG-1 y sin fallar un solo disparo (sin bandana)
+T0c381eff	Te echo de misil
+D83890f90	Derrota a Sniper Wolf en el campo nevado sólo con el lanzamisiles Nikita, sin gastar más del 50 % del combustible de los misiles (sin bandana)
+Td2aaee7c	Buen viaje
+D9e23d445	Derrota a los enemigos del montacargas sin usar armas ni romper cuellos (sin bandana)
+Tdc6566cd	Mi espíritu te vigilará
+De6eb75b7	Derrota a Vulcan Raven
+T9b0cbdca	Fusión mental
+D53cfd584	Derrota a Vulcan Raven sólo con trampas y sin que te detecte (sin bandana)
+T3bc36ffa	Cuervo a la brasa
+D2529c360	Derrota a Vulcan Raven sólo con misiles y sin recibir daño (sin bandana)
+Td5e70f60	Este trabajo apesta
+Df455e948	Encuentra la tarjeta PAL en la zanja de drenaje
+T546b70db	Bicho infiltrado
+D309528d6	Recupera la tarjeta PAL que se llevó la rata
+T7d91a6af	Qué enredo
+D257660bc	Descubre la verdad sobre lo que está pasando realmente
+T656cb5d9	¡¡¡NOS HAN TOMADO EL PELO!!!
+D0dd22b59	Debo expresar mi más sincera gratitud
+T37d55a1b	Un tiro certero
+Dc4f13513	Dispara a Liquid Snake con el PSG-1 mientras está dentro de REX (sin bandana)
+T48467a7a	Lo único que se me daba bien
+Dfddc144e	Destruye a Metal Gear REX sin recibir daño (sin bandana)
+Teb9d18fd	A la tercera va la vencida
+D75209fb6	Destruye a Metal Gear REX
+T65b17f9e	Superior
+D237606a5	Derrota a Liquid Snake cuerpo a cuerpo
+T55dd4dbc	Desangra al lagarto
+D8207ae49	Derrota a Liquid Snake en 1:45 o menos
+T20708165	Sí, se acabó
+Dd5a0e551	Golpea a Liquid Snake 10 veces seguidas sin que él te golpee ni una vez
+T4f5ccfbf	Hal y Dave
+D9323658d	Escapa de Shadow Moses con Otacon
+Tebe2370e	Disfruta de la vida
+D698a8064	Escapa de Shadow Moses con Meryl
+T4adba2b6	Me llamo Snake. SOLID Snake
+Dfb977178	Infíltrate en Shadow Moses con estilo
+T2c8b14d5	La pipa sea contigo
+Dd24e0a72	Encuentra la SOCOM
+Teb4433e0	¿No había algo ahí?
+D7c436749	Cruza el helipuerto y coge las granadas chaff sin que te vean los focos
+T50bf011b	Estás aturdidor
+D711838a9	Coge las granadas aturdidoras del helipuerto sin usar granadas chaff y sin que te vea la cámara de seguridad
+T68d60606	¿Ves? ¡Cuatro!
+Da6df0df4	Coge el C4 de la armería y abre todas las entradas ocultas
+T4863e402	Novato
+Dc735fe91	Completa el juego en dificultad Fácil o superior
+T16054eb0	Uno más
+Dcb69eaa4	Coge el FAMAS y su munición en la armería sin activar los sensores
+T7f9339c1	Sin explotar
+Dd5779838	Coge todas las claymore del cañón antes del combate con el tanque sin usar el detector de minas
+T29e3bfb4	Maggie Q
+Daee78a58	Consigue el lanzamisiles Nikita
+T84f2fe80	A estas horas ya estará muerta
+D5b508c09	Coge el PSG-1 y las dos cajas de munición sin activar los sensores
+Tfd0750d6	Esto puede escocer un poco
+D90236869	Consigue el lanzamisiles Stinger y reúne 20 misiles antes de enfrentarte al Hind
+T174a8935	Silenciando mis sentimientos
+Deec4e3e4	Consigue el silenciador
+Tf28b45a1	Me has leído el calor
+Db30225ef	Consigue las gafas térmicas antes de encontrar al jefe de DARPA
+T22c435c9	Mía para siempre
+Daf42fb38	Consigue el primer detector de minas disponible
+T74f0cb81	Esto apesta
+D36bb347d	Consigue la máscara antigás
+T872393d5	«Fisher estuvo aquí»...?
+D81c23c85	Consigue las gafas de visión nocturna en cuanto puedas
+Tb2c634cb	Pastillitas
+D02493454	Coge el diazepam de la cueva
+T078fe03e	Sólo fotos, no te enfrentes al enemigo
+Dcef9e835	Encuentra la cámara en una partida nueva
+Teae4865e	Monólogo
+D3df81b7b	Siente la vergüenza de jugar con una tele mono
+T0d3cc23c	Nunca más
+D4d11376a	Escucha un poema de Master Miller
+Tcabf2836	Soy nuclear
+D49db5149	Conoce el pasado de Nastasha
+T276dfd60	Raison d'être
+D8c9d91fc	Escucha todos los archivos de la sesión informativa, incluidos los dos ocultos
+T9a0167db	Ratonera
+Ddfb8b6f9	Mata ratas hasta que te echen la bronca
+Td883bb98	Una bandada de cuervos
+D3d42d88c	Mata cuervos hasta que te echen la bronca
+T11d42d12	Tu mayor admirador
+D44d73ca1	Recibe una llamada oculta de Deepthroat
+T87a59b98	No puedo llamar a la puerta y pedir que me abran
+Dba1655ff	Llama a la puerta y pide que te abran
+T1e493415	Llamando a las puertas del cielo
+Da5cc4bfa	Pon un C4 en la pared y atrae a un guardia golpeando la pared
+T057564b8	Entrega especial
+D6e26c7b6	Haz volar a un guardia con un C4 cuando levante tu caja
+T178459b9	Eh, tú. Dame chicle
+Da82fc032	Encuentra un moái
+T19624915	Sí, nena, así... ¿Eh? ¿Qué misión?
+D5bfc104b	Mira a la mujer de la celda haciendo ejercicio sin pantalones
+T04839776	Qué femenina
+D6da81c98	Sigue a Meryl al baño antes de que termine de... prepararse
+Tafa47a7b	La dama de rojo
+D782abc6f	Haz que Meryl se sonroje hasta ponerse como un tomate antes de encontrarte con Psycho Mantis
+T22089e0b	Amor de cachorro
+D1cedc01e	El cachorro ha hecho suya tu caja. Dásela
+T8e217b0f	Sí, sólo un poco
+D340b332e	Reúnete con Meryl al otro lado del campo de minas en dos segundos justos
+Ta09b88eb	Me has cabreado
+D4e897b58	Pon un C4 en la espalda de un soldado mientras orina y hazlo volar
+T19d0b1f2	Gallina
+D612417d8	Escapa de la celda sin matar ni dejar inconsciente a Johnny Sasaki
+T3f0cbf9c	Aguafiestas
+D58882dad	Mata a Johnny Sasaki
+Td9c825f7	Ábrete, sésamo
+D5351fc0b	Abre la puerta de la pasarela inferior de la torre de comunicaciones
+T87577bf1	Sin ataduras
+Db043da8e	Descubre el paracaídas
+T65bab5f2	Ahora sé por qué lloráis
+Dc27d72e5	Tira a un enemigo al alto horno
+T365bf28c	Patada a la grúa
+D5ae6063b	Destruye la grúa del alto horno
+Td08a78da	Fantasma a la vista
+D555351ee	Saca una foto del fantasma de Hideo Kojima
+Tfced6a9d	Jugador de videojuegos, ¿eh?
+Dd6ff85f2	Completa todas las misiones de RV
+T6db02139	¡¡NANOMÁQUINAS, CHAVAL!!
+D78833b44	Consigue el puesto n.º 1 en todas las misiones de RV
+Tb46c700f	Los años no te han frenado nada
+Db681d48a	Completa el juego en menos de 3 horas
+T1e2e3abe	Nunca game over
+D920c30cd	Completa el juego sin usar ninguna continuación
+T2c65ac70	Todo un ninja
+Dbcbd1da1	Completa el juego con 4 alertas como máximo
+T35239035	Peace Walker
+D550b2e50	Completa el juego matando a menos de 25 enemigos
+T98c6786c	No TENGO tanta hambre
+D100687ff	Completa el juego sin usar ninguna ración
+Tcd778e55	Soldado
+D8ee3af36	Completa el juego en dificultad Normal o superior
+T028f234c	Boina verde
+D7172fbc0	Completa el juego en dificultad Difícil o superior
+Ted510664	Foxhound
+D247e02e7	Completa el juego en dificultad Extremo
+Td0930c12	Little Boss
+Dd12bd5d7	Consigue el rango Big Boss
+T5c2d170d	El mejor soldado del siglo XXI
+D478252ee	Consigue el rango Big Boss en una partida nueva (sin camuflaje óptico ni bandana)
