@@ -10,6 +10,7 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <algorithm>
 #include <map>
 #include <sstream>
 #include <vector>
@@ -859,3 +860,35 @@ bool Emulator::LoadState(const std::string& path)
   return ok;
 }
 
+bool Emulator::CaptureFrame(std::vector<uint8_t>* rgba, int* w, int* h)
+{
+  if (!m_running || m_frame_w <= 0 || m_frame_h <= 0)
+    return false;
+  // La textura del juego se comparte entre contextos, pero los FBO no: se lee con uno temporal en el
+  // contexto de la interfaz.
+  MakeUiCurrent();
+  GLuint fbo = 0;
+  glGenFramebuffers(1, &fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, Texture(), 0);
+  const bool ok = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+  if (ok)
+  {
+    *w = m_frame_w;
+    *h = m_frame_h;
+    rgba->resize(static_cast<size_t>(m_frame_w) * m_frame_h * 4);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(0, 0, m_frame_w, m_frame_h, GL_RGBA, GL_UNSIGNED_BYTE, rgba->data());
+    // Por hardware la imagen tiene el origen abajo: se le da la vuelta.
+    if (FlippedY())
+      for (int y = 0; y < m_frame_h / 2; y++)
+        std::swap_ranges(rgba->begin() + static_cast<size_t>(y) * m_frame_w * 4,
+                         rgba->begin() + static_cast<size_t>(y + 1) * m_frame_w * 4,
+                         rgba->begin() + static_cast<size_t>(m_frame_h - 1 - y) * m_frame_w * 4);
+    for (size_t i = 3; i < rgba->size(); i += 4)
+      (*rgba)[i] = 255;
+  }
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glDeleteFramebuffers(1, &fbo);
+  return ok;
+}

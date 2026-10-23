@@ -41,6 +41,8 @@ public:
   bool SwapDisc(int index);
 
   bool SaveState(const std::string& path);
+  // Copia de la imagen actual del juego en RGBA, de arriba abajo (para miniaturas y capturas).
+  bool CaptureFrame(std::vector<uint8_t>* rgba, int* w, int* h);
   bool LoadState(const std::string& path);
   void SetVolume(int volume) { m_volume = volume; }
   void SetRumbleTarget(SDL_GameController* pad) { m_pad = pad; }

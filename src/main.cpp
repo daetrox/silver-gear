@@ -19,6 +19,10 @@ extern "C" {
 #include "md5.h"
 }
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STBI_WRITE_NO_STDIO
+#include "ext/stb_image_write.h"
+
 #include <SDL.h>
 #include <algorithm>
 #include <atomic>
@@ -27,6 +31,7 @@ extern "C" {
 #include <cstring>
 #include <ctime>
 #include <filesystem>
+#include <fstream>
 #include <functional>
 #include <map>
 #include <mutex>
@@ -254,7 +259,56 @@ enum class Modal
   Dialog,
   PlayChoice,
   ConfirmReset, // confirmar el reinicio de los logros
+  Slots,        // elegir ranura para guardar o cargar
 };
+
+// Ranuras de partida: 0 = autoguardado (al salir), 1..3 = manuales.
+constexpr int kSlots = 4;
+struct SlotInfo
+{
+  bool exists = false;
+  int64_t time = 0; // epoch del guardado (0 si no consta)
+  int disc = 0;     // disco insertado (0 = Disco 1)
+  Texture thumb;    // miniatura de la imagen del juego
+  std::string thumb_key;
+};
+
+// Guarda una imagen RGBA como PNG (con rutas UTF-8 también en Windows).
+bool WritePng(const std::string& path, const uint8_t* rgba, int w, int h)
+{
+  FILE* f = Platform::OpenFile(path.c_str(), "wb");
+  if (!f)
+    return false;
+  const int ok = stbi_write_png_to_func([](void* ctx, void* data, int size) { std::fwrite(data, 1, size, static_cast<FILE*>(ctx)); },
+                                        f, w, h, 4, rgba, w * 4);
+  std::fclose(f);
+  return ok != 0;
+}
+
+// Reduce una imagen RGBA a `tw`x`th` promediando bloques.
+std::vector<uint8_t> Downscale(const std::vector<uint8_t>& src, int sw, int sh, int tw, int th)
+{
+  std::vector<uint8_t> out(static_cast<size_t>(tw) * th * 4);
+  for (int y = 0; y < th; y++)
+    for (int x = 0; x < tw; x++)
+    {
+      const int x0 = x * sw / tw, x1 = std::max(x0 + 1, (x + 1) * sw / tw);
+      const int y0 = y * sh / th, y1 = std::max(y0 + 1, (y + 1) * sh / th);
+      unsigned sum[4] = {};
+      int n = 0;
+      for (int yy = y0; yy < y1; yy += std::max(1, (y1 - y0) / 4))
+        for (int xx = x0; xx < x1; xx += std::max(1, (x1 - x0) / 4))
+        {
+          const uint8_t* p = &src[(static_cast<size_t>(yy) * sw + xx) * 4];
+          for (int c = 0; c < 4; c++)
+            sum[c] += p[c];
+          n++;
+        }
+      for (int c = 0; c < 4; c++)
+        out[(static_cast<size_t>(y) * tw + x) * 4 + c] = static_cast<uint8_t>(sum[c] / n);
+    }
+  return out;
+}
 
 enum class PromptStyle
 {
@@ -359,6 +413,7 @@ enum OptRow
   OPT_CONTROLS,
   OPT_NTSC,
   OPT_SUBTITLES,
+  OPT_AUTOSAVE,
   OPT_BACK,
 };
 
@@ -418,7 +473,7 @@ const std::vector<int>& OptPageRows(int page)
     {OPT_GAME, OPT_DISC2, OPT_BIOS, OPT_BIOS_LOAD, OPT_FASTBOOT, OPT_BACK},
     {OPT_RENDERER, OPT_SCALE, OPT_TEXFILTER, OPT_PGXP, OPT_WIDESCREEN, OPT_SIDEART, OPT_SMOOTH, OPT_FULLSCREEN,
      OPT_BACK},
-    {OPT_NTSC, OPT_SUBTITLES, OPT_HARDCORE, OPT_BACK},
+    {OPT_NTSC, OPT_SUBTITLES, OPT_AUTOSAVE, OPT_HARDCORE, OPT_BACK},
     {OPT_VOLUME, OPT_MUSIC, OPT_SFX, OPT_BACK},
     {OPT_PROMPTS, OPT_REMAP_KB, OPT_REMAP_PAD, OPT_RESET_CONTROLS, OPT_CONTROLS, OPT_BACK},
     {OPT_BACK}, // TRUCOS tiene su propia pantalla
@@ -615,6 +670,9 @@ private:
   // Pantalla de carga: el códec sintonizando la frecuencia 140.85 (`t` en segundos desde que empezó).
   void RenderLoading(float t, float alpha);
   float m_load_t = -1; // >= 0 durante la pantalla de carga de la partida
+  SlotInfo m_slots[kSlots];
+  int m_slot_sel = 1, m_slot_last = 1; // ranura elegida en el selector y la última usada (F5/F7)
+  bool m_slots_save = false;           // el selector guarda (o carga)
   void DimScreen(float a);
   std::vector<std::string> Wrap(const Font& f, const std::string& text, float size, float max_w);
   std::string Truncate(const Font& f, const std::string& text, float size, float max_w);
@@ -625,7 +683,7 @@ private:
   // Acciones
   void ActivateMenu(int index);
   void ActivatePause(int index);
-  void StartGame(bool resume);
+  void StartGame(int slot); // slot < 0: partida nueva
   void StopGame(bool autosave);
   void OptionChange(int row, int dir);
   void OpenOptionPage(int page);
@@ -640,14 +698,26 @@ private:
   void ToggleFullscreen();
   void ImportBios(const std::string& path);
   void SetGamePath(const std::string& path);
-  std::string StatePath() const
+  // Estado de una ranura (0 = autoguardado: el nombre de siempre, para conservar las partidas viejas).
+  std::string StatePath(int slot) const
   {
+    std::string base = Paths::StatesDir() + "/" + StemName(m_cfg.game_path) + ".state";
     if (const char* test = std::getenv("SILVER_TEST_STATE")) // pruebas: nunca el estado del usuario
-      return test;
-    return Paths::StatesDir() + "/" + StemName(m_cfg.game_path) + ".state";
+      base = test;
+    return slot == 0 ? base : base.substr(0, base.size() - 6) + ".slot" + std::to_string(slot) + ".state";
   }
-  bool HasResumeState() const { return Paths::FileExists(StatePath()); }
-  bool SaveStateNow() { return m_emu.SaveState(StatePath()); }
+  bool SaveSlot(int slot);
+  bool LoadSlot(int slot);
+  void RefreshSlots();
+  int LatestSlot() const;
+  bool AnySlot() const { return LatestSlot() >= 0; }
+  void OpenSlots(bool save);
+  void ActivateSlot(int slot);
+  void RenderSlots();
+  // Ficha de una ranura (miniatura, nombre, fecha y disco) en píxeles de la interfaz.
+  void DrawSlotCard(int slot, float x, float y, float thumb_w, bool selected);
+  std::string SlotName(int slot) const;
+  std::string SlotDate(int slot) const;
   // Disco 2: el elegido en Opciones o, si no, el que haya junto al Disco 1.
   std::string DiscTwoPath() const
   {
@@ -973,14 +1043,15 @@ void App::ActivateMenu(int index)
   switch (index)
   {
     case MENU_PLAY:
-      if (HasResumeState() && !m_cfg.hardcore)
+      RefreshSlots();
+      if (AnySlot() && !m_cfg.hardcore)
       {
         m_modal = Modal::PlayChoice;
         m_choice_sel = 0;
       }
       else
       {
-        StartGame(false);
+        StartGame(-1);
       }
       break;
     case MENU_ACHIEVEMENTS:
@@ -1049,7 +1120,7 @@ void App::SwapDisc()
   }
 }
 
-void App::StartGame(bool resume)
+void App::StartGame(int slot)
 {
   m_modal = Modal::None;
   if (m_cfg.game_path.empty() || !Paths::FileExists(m_cfg.game_path))
@@ -1072,7 +1143,7 @@ void App::StartGame(bool resume)
   }
   m_hardcore_session = m_cfg.hardcore;
   if (m_hardcore_session)
-    resume = false;
+    slot = -1;
 
   // La pantalla de carga mientras arranca el núcleo (que bloquea un momento) y los primeros segundos de
   // la partida, que con el arranque rápido son negros.
@@ -1096,8 +1167,10 @@ void App::StartGame(bool resume)
     return;
   }
   m_emu.SetRumbleTarget(m_pad);
-  if (resume && !m_emu.LoadState(StatePath()))
+  if (slot >= 0 && !m_emu.LoadState(StatePath(slot)))
     Toast(L("No se pudo cargar la partida guardada", "Could not load the saved game"));
+  if (slot > 0)
+    m_slot_last = slot;
 
   // Logros: se evalúan tras cada frame emulado leyendo la RAM (en pausa si hay trucos activos).
   if (m_cheats_active)
@@ -1170,8 +1243,8 @@ void App::StopGame(bool autosave)
 {
   if (!m_emu.IsRunning())
     return;
-  if (autosave && !m_hardcore_session)
-    SaveStateNow();
+  if (autosave && !m_hardcore_session && m_cfg.autosave)
+    SaveSlot(0);
   m_emu.on_frame = nullptr;
   m_ach.EndSession();
   m_emu.Stop();
@@ -1190,25 +1263,9 @@ void App::ActivatePause(int index)
   {
     case PAUSE_RESUME: resume(); break;
     case PAUSE_SAVE:
-      if (StatesBlocked())
-        break;
-      Toast(SaveStateNow() ? L("Partida guardada", "Game saved") : L("No se pudo guardar la partida", "Could not save the game"));
-      resume();
-      break;
     case PAUSE_LOAD:
-      if (StatesBlocked())
-        break;
-      if (m_emu.LoadState(StatePath()))
-      {
-        if (!m_cheats_active)
-          m_ach.BeginSession(false); // reinicia la evaluación tras cambiar la memoria
-        Toast(L("Partida cargada", "Game loaded"));
-      }
-      else
-      {
-        Toast(L("No hay partida guardada", "No saved game"));
-      }
-      resume();
+      if (!StatesBlocked())
+        OpenSlots(index == PAUSE_SAVE);
       break;
     case PAUSE_DISC:
       SwapDisc();
@@ -1445,6 +1502,7 @@ void App::OptionChange(int row, int dir)
         return;
       m_cfg.subtitles = !m_cfg.subtitles;
       break;
+    case OPT_AUTOSAVE: m_cfg.autosave = !m_cfg.autosave; break;
     case OPT_SFX:
       m_cfg.sfx_volume = activate ? (m_cfg.sfx_volume >= 100 ? 0 : m_cfg.sfx_volume + 10)
                                   : std::clamp(m_cfg.sfx_volume + dir * 10, 0, 100);
@@ -1544,7 +1602,17 @@ void App::NavigateImpl(int dy, int dx)
   if (m_modal == Modal::PlayChoice)
   {
     if (dy)
-      m_choice_sel = (m_choice_sel + dy + 3) % 3;
+      m_choice_sel = (m_choice_sel + dy + 4) % 4;
+    return;
+  }
+  if (m_modal == Modal::Slots)
+  {
+    if (dy)
+    {
+      m_slot_sel = (m_slot_sel + dy + kSlots) % kSlots;
+      if (m_slots_save && m_slot_sel == 0) // el autoguardado no se elige a mano
+        m_slot_sel = (m_slot_sel + dy + kSlots) % kSlots;
+    }
     return;
   }
   if (m_modal == Modal::ConfirmReset)
@@ -1643,14 +1711,21 @@ void App::Accept()
   if (m_modal == Modal::PlayChoice)
   {
     if (m_choice_sel == 0)
-      StartGame(true);
+      StartGame(LatestSlot());
     else if (m_choice_sel == 1)
-      StartGame(false);
+      OpenSlots(false);
+    else if (m_choice_sel == 2)
+      StartGame(-1);
     else
     {
       m_audio.Play(Sfx::Cancel);
       m_modal = Modal::None;
     }
+    return;
+  }
+  if (m_modal == Modal::Slots)
+  {
+    ActivateSlot(m_slot_sel);
     return;
   }
   switch (m_screen)
@@ -2054,20 +2129,11 @@ void App::HandleEvent(const SDL_Event& e)
         {
         }
         else if (key == SDLK_F5)
-          Toast(SaveStateNow() ? L("Partida guardada", "Game saved") : L("No se pudo guardar", "Could not save"));
+          Toast(SaveSlot(m_slot_last) ? SlotName(m_slot_last) + L(": partida guardada", ": game saved")
+                                      : std::string(L("No se pudo guardar", "Could not save")));
         else if (key == SDLK_F7)
-        {
-          if (m_emu.LoadState(StatePath()))
-          {
-            if (!m_cheats_active)
-              m_ach.BeginSession(false);
-            Toast(L("Partida cargada", "Game loaded"));
-          }
-          else
-          {
-            Toast(L("No hay partida guardada", "No saved game"));
-          }
-        }
+          Toast(LoadSlot(m_slot_last) ? SlotName(m_slot_last) + L(": partida cargada", ": game loaded")
+                                      : SlotName(m_slot_last) + L(": vacía", ": empty"));
         break;
       }
       switch (key)
@@ -2165,6 +2231,7 @@ void App::HandleEvent(const SDL_Event& e)
           case 1: m_opt_sel = z.index; break;
           case 2: m_pause_sel = z.index; break;
           case 3: m_choice_sel = z.index; break;
+          case 9: m_slot_sel = z.index; break;
           case 7: m_remap_sel = z.index; break;
           case 8: m_cheat_sel = z.index; break;
           default: break;
@@ -2410,6 +2477,8 @@ void App::Render()
       RenderControls();
     else if (m_paused)
       RenderPause();
+    if (m_modal == Modal::Slots)
+      RenderSlots();
     RenderPopups();
   }
   else
@@ -2430,6 +2499,8 @@ void App::Render()
       RenderPlayChoice();
     if (m_modal == Modal::ConfirmReset)
       RenderConfirmReset();
+    if (m_modal == Modal::Slots)
+      RenderSlots();
     RenderTitleBar();
     RenderLanguage();
     RenderTransition();
@@ -2937,6 +3008,8 @@ void App::RenderMenu()
     if (O >= 0)
       e *= 1.0f - EaseInOut((O - i * 0.05f) / 0.3f);
     const float sel = m_modal == Modal::None ? m_sel_anim[i] : 0.0f;
+    if (m_modal != Modal::None)
+      e *= 0.3f; // detrás de una ventana, apagados
     // Entran desde la derecha.
     DrawMenuButton(kMenuSlots[i], labels[i], icons[i], sel, kFont, true, e, (1.0f - e) * IS(460),
                    i == MENU_ACHIEVEMENTS && counter_inline ? 80.0f : 0.0f);
@@ -2988,21 +3061,235 @@ void App::RenderMenu()
 void App::RenderPlayChoice()
 {
   DimScreen(0.55f);
-  const float x = 470, y = 300, w = 620, h = 470;
+  const float x = 300, y = 260, w = 1000, h = 520;
   Panel(x, y, w, h);
   m_r.Text(m_r.brush, L("JUGAR", "PLAY"), IX(x + 44), IY(y + 24), IS(52), kWhite);
-  const char* labels[3] = {L("CONTINUAR", "CONTINUE"), L("NUEVA PARTIDA", "NEW GAME"), L("CANCELAR", "CANCEL")};
-  const Texture* icons[3] = {&m_ic_play, &m_ic_credits, &m_ic_quit};
-  for (int i = 0; i < 3; i++)
+  const char* labels[4] = {L("CONTINUAR", "CONTINUE"), L("CARGAR PARTIDA", "LOAD GAME"), L("NUEVA PARTIDA", "NEW GAME"),
+                           L("CANCELAR", "CANCEL")};
+  const Texture* icons[4] = {&m_ic_play, &m_ic_credits, &m_ic_disc, &m_ic_quit};
+  for (int i = 0; i < 4; i++)
   {
-    const Rect slot = {x + 70, y + 120 + i * 96.0f, 462, 88};
-    DrawMenuButton(slot, labels[i], icons[i], m_sel_anim[i], 34, true);
+    const Rect slot = {x + 40, y + 115 + i * 92.0f, 470, 84};
+    DrawMenuButton(slot, labels[i], icons[i], m_sel_anim[i], 30, true);
     Hot(IR(slot), 3, i, [this, i](float, float) {
       m_choice_sel = i;
       Accept();
     });
   }
+  // Ficha de la partida más reciente (la que carga CONTINUAR).
+  if (const int latest = LatestSlot(); latest >= 0)
+  {
+    m_r.Text(m_r.ui, L("ÚLTIMA PARTIDA", "LATEST GAME"), IX(x + 560), IY(y + 118), IS(22), kDim);
+    DrawSlotCard(latest, x + 560, y + 152, 400, false);
+  }
   RenderHints({{PsButton::Accept, L("Aceptar", "Accept")}, {PsButton::Back, L("Volver", "Back")}}, IX(x + w - 30), IY(y + h + 16));
+}
+
+std::string App::SlotName(int slot) const
+{
+  if (slot == 0)
+    return L("Autoguardado", "Autosave");
+  return (LangEn() ? "Slot " : "Ranura ") + std::to_string(slot);
+}
+
+std::string App::SlotDate(int slot) const
+{
+  const SlotInfo& s = m_slots[slot];
+  if (!s.exists)
+    return L("Vacía", "Empty");
+  std::string text = L("Fecha desconocida", "Unknown date");
+  if (s.time > 0)
+  {
+    char date[48];
+    const time_t t = static_cast<time_t>(s.time);
+    std::strftime(date, sizeof(date), L("%d/%m/%Y  %H:%M", "%m/%d/%Y  %H:%M"), std::localtime(&t));
+    text = date;
+  }
+  return text + (LangEn() ? "  ·  Disc " : "  ·  Disco ") + std::to_string(s.disc + 1);
+}
+
+// Relee qué ranuras hay, con su fecha, disco y miniatura (sólo recarga las miniaturas que cambian).
+void App::RefreshSlots()
+{
+  for (int i = 0; i < kSlots; i++)
+  {
+    SlotInfo& s = m_slots[i];
+    const std::string path = StatePath(i);
+    s.exists = Paths::FileExists(path);
+    s.time = 0;
+    s.disc = 0;
+    if (std::ifstream info(Platform::Path(path + ".txt")); info)
+    {
+      std::string line;
+      while (std::getline(info, line))
+      {
+        if (line.rfind("time=", 0) == 0)
+          s.time = std::atoll(line.c_str() + 5);
+        else if (line.rfind("disc=", 0) == 0)
+          s.disc = std::atoi(line.c_str() + 5);
+      }
+    }
+    const std::string key = s.exists ? path + "#" + std::to_string(s.time) : std::string();
+    if (key != s.thumb_key)
+    {
+      if (s.thumb.id)
+        glDeleteTextures(1, &s.thumb.id);
+      s.thumb = {};
+      s.thumb_key = key;
+      if (s.exists && Paths::FileExists(path + ".png"))
+        m_r.LoadTexture(path + ".png", &s.thumb, true);
+    }
+  }
+}
+
+int App::LatestSlot() const
+{
+  int best = -1;
+  for (int i = 0; i < kSlots; i++)
+    if (m_slots[i].exists && (best < 0 || m_slots[i].time > m_slots[best].time))
+      best = i;
+  return best;
+}
+
+bool App::SaveSlot(int slot)
+{
+  const std::string path = StatePath(slot);
+  Paths::MakeDirs(Paths::StatesDir());
+  if (!m_emu.SaveState(path))
+    return false;
+  // Miniatura de la imagen del juego, con su proporción (4:3 o 16:9).
+  std::vector<uint8_t> frame;
+  int fw = 0, fh = 0;
+  if (m_emu.CaptureFrame(&frame, &fw, &fh))
+  {
+    const int tw = 320, th = std::max(1, static_cast<int>(std::lround(tw / std::max(0.5f, m_emu.AspectRatio()))));
+    const std::vector<uint8_t> small = Downscale(frame, fw, fh, tw, th);
+    WritePng(path + ".png", small.data(), tw, th);
+  }
+  if (std::ofstream info(Platform::Path(path + ".txt"), std::ios::trunc); info)
+    info << "time=" << static_cast<long long>(std::time(nullptr)) << "\ndisc=" << m_emu.CurrentDisc() << "\n";
+  if (slot > 0)
+    m_slot_last = slot;
+  RefreshSlots();
+  return true;
+}
+
+bool App::LoadSlot(int slot)
+{
+  if (!m_emu.LoadState(StatePath(slot)))
+    return false;
+  if (!m_cheats_active)
+    m_ach.BeginSession(false); // reinicia la evaluación tras cambiar la memoria
+  if (slot > 0)
+    m_slot_last = slot;
+  return true;
+}
+
+void App::OpenSlots(bool save)
+{
+  RefreshSlots();
+  m_slots_save = save;
+  m_slot_sel = save ? m_slot_last : std::max(0, LatestSlot());
+  m_modal = Modal::Slots;
+}
+
+void App::ActivateSlot(int slot)
+{
+  if (m_slots_save)
+  {
+    if (slot == 0)
+      return;
+    const bool ok = SaveSlot(slot);
+    m_audio.Play(ok ? Sfx::Select : Sfx::Cancel);
+    Toast(ok ? SlotName(slot) + L(": partida guardada", ": game saved") : std::string(L("No se pudo guardar la partida", "Could not save the game")));
+  }
+  else if (!m_slots[slot].exists)
+  {
+    m_audio.Play(Sfx::Cancel);
+    Toast(SlotName(slot) + L(": vacía", ": empty"));
+    return;
+  }
+  else if (!m_emu.IsRunning())
+  {
+    StartGame(slot); // desde el menú principal
+    return;
+  }
+  else
+  {
+    const bool ok = LoadSlot(slot);
+    m_audio.Play(ok ? Sfx::Select : Sfx::Cancel);
+    Toast(ok ? SlotName(slot) + L(": partida cargada", ": game loaded") : std::string(L("No se pudo cargar la partida", "Could not load the game")));
+  }
+  m_modal = Modal::None;
+  if (m_emu.IsRunning())
+  {
+    m_paused = false;
+    m_emu.SetPaused(false);
+  }
+}
+
+void App::DrawSlotCard(int slot, float x, float y, float thumb_w, bool selected)
+{
+  const SlotInfo& s = m_slots[slot];
+  const float th = thumb_w * 0.75f;
+  const Rect r = IR({x, y, thumb_w, th});
+  m_r.Rect(r.x - IS(2), r.y - IS(2), r.w + IS(4), r.h + IS(4), UiMode::Solid, WithAlpha(kSilver, 0.5f));
+  if (s.thumb.id)
+  {
+    // Encajada en el recuadro 4:3 sin deformar (las de 16:9 quedan con franjas).
+    const float a = static_cast<float>(s.thumb.w) / std::max(1, s.thumb.h);
+    const float iw = std::min(r.w, r.h * a), ih = iw / a;
+    m_r.Rect(r.x, r.y, r.w, r.h, UiMode::Solid, {0, 0, 0, 1});
+    m_r.Sprite(s.thumb, r.x + (r.w - iw) / 2, r.y + (r.h - ih) / 2, iw, ih, {1, 1, 1, 1});
+  }
+  else
+  {
+    m_r.Rect(r.x, r.y, r.w, r.h, UiMode::Solid, {0.05f, 0.06f, 0.08f, 1});
+    m_r.TextCentered(m_r.display, "?", r.x + r.w / 2, r.y + r.h / 2, r.h * 0.4f, WithAlpha(kDim, 0.5f));
+  }
+  const Color tc = selected ? kInk : kWhite;
+  m_r.Text(m_r.brush, SlotName(slot), IX(x), IY(y + th + 14), IS(26), tc);
+  m_r.Text(m_r.ui, SlotDate(slot), IX(x), IY(y + th + 50), IS(22), selected ? WithAlpha(kInk, 0.75f) : kGrey);
+}
+
+void App::RenderSlots()
+{
+  DimScreen(0.6f);
+  const float x = 240, y = 170, w = 1140, h = 700;
+  Panel(x, y, w, h);
+  m_r.Text(m_r.brush, m_slots_save ? L("GUARDAR PARTIDA", "SAVE GAME") : L("CARGAR PARTIDA", "LOAD GAME"), IX(x + 44),
+           IY(y + 24), IS(48), kWhite);
+  // Cuatro fichas en fila: autoguardado y las tres ranuras.
+  const float cw = 240, gap = 30, x0 = x + (w - (kSlots * cw + (kSlots - 1) * gap)) / 2, y0 = y + 140;
+  for (int i = 0; i < kSlots; i++)
+  {
+    const float cx = x0 + i * (cw + gap);
+    const bool disabled = m_slots_save && i == 0;
+    const bool sel = i == m_slot_sel;
+    const Rect card = IR({cx - 14, y0 - 14, cw + 28, cw * 0.75f + 112});
+    if (sel)
+      m_r.Sprite(m_row_sel, card.x - IS(10), card.y, card.w + IS(20), card.h, {1, 1, 1, 0.95f});
+    if (disabled)
+      m_r.Rect(card.x, card.y, card.w, card.h, UiMode::Solid, {0, 0, 0, 0.5f});
+    DrawSlotCard(i, cx, y0, cw, sel);
+    Hot(card, 9, i, [this, i](float, float) {
+      m_slot_sel = i;
+      Accept();
+    });
+  }
+  const char* help = m_slots_save
+                       ? L("Elige una ranura: si ya tiene una partida, se sustituye. El autoguardado se hace solo al salir.",
+                           "Choose a slot: an existing game in it is replaced. The autosave happens on its own when you quit.")
+                       : L("F5 / F7 guardan y cargan al momento en la última ranura usada.",
+                           "F5 / F7 quick-save and quick-load in the last slot used.");
+  float ly = y0 + cw * 0.75f + 150;
+  for (const std::string& line : Wrap(m_r.ui, help, IS(23), IS(w - 100)))
+  {
+    m_r.Text(m_r.ui, line, IX(x + 50), IY(ly), IS(23), kGrey);
+    ly += 32;
+  }
+  RenderHints({{PsButton::Accept, m_slots_save ? L("Guardar", "Save") : L("Cargar", "Load")}, {PsButton::Back, L("Volver", "Back")}},
+              IX(x + w - 30), IY(y + h + 16));
 }
 
 void App::RenderOptionCategories()
@@ -3131,6 +3418,7 @@ void App::RenderOptions()
                 : m_cfg.ntsc_mode ? L("60 Hz (NTSC)", "60 Hz (NTSC)")
                                   : L("50 Hz (PAL original)", "50 Hz (original PAL)"),
                 m_ntsc_available, m_ntsc_available};
+      case OPT_AUTOSAVE: return {L("Guardar al salir", "Save on quit"), yesno(m_cfg.autosave), true, true};
       case OPT_SUBTITLES:
         return {L("Subtítulos de las escenas", "Cutscene subtitles"),
                 m_subs_available ? yesno(m_cfg.subtitles) : L("Sí (no se pueden quitar en este disco)", "Yes (cannot be removed on this disc)"),
@@ -3277,6 +3565,12 @@ void App::RenderOptions()
                "como la americana y la japonesa (sube la velocidad de la CPU emulada). Se aplica al empezar la partida.",
                "The European version runs at 50 Hz: slower and letterboxed. PeterDelta's patch makes it 60 Hz, like the "
                "US and Japanese ones (it raises the emulated CPU speed). Applied when the game starts.");
+      break;
+    case OPT_AUTOSAVE:
+      help = L("Al volver al menú o salir, la partida se guarda en la ranura de autoguardado (además de las tres "
+               "ranuras manuales de la pausa). CONTINUAR carga la más reciente.",
+               "When you return to the menu or quit, the game is saved in the autosave slot (besides the three manual "
+               "slots in the pause menu). CONTINUE loads the most recent one.");
       break;
     case OPT_SUBTITLES:
       help = L("Texto de las escenas (parche de PeterDelta para quitarlo). Se aplica al empezar la partida.",
@@ -4040,7 +4334,8 @@ int App::Run(int argc, char** argv)
       if (const char* st = std::getenv("SILVER_TEST_STYLE"))
         m_cfg.prompt_style = st;
       m_cfg.hardcore = std::getenv("SILVER_TEST_HARDCORE") != nullptr; // pruebas: modo normal por defecto
-      StartGame(screenshot_screen == "continue");
+      RefreshSlots();
+      StartGame(screenshot_screen == "continue" ? LatestSlot() : -1);
       if (m_modal == Modal::Dialog)
         SDL_Log("Error al arrancar: %s", m_dialog.c_str());
       // SILVER_TEST_SCRIPT="12:start,15:cross,20:left:2.5" pulsa botones en segundos concretos
@@ -4100,7 +4395,7 @@ int App::Run(int argc, char** argv)
         // SILVER_TEST_SAVE_AT="50" guarda un estado (en SILVER_TEST_STATE) en ese segundo.
         if (const char* sv = std::getenv("SILVER_TEST_SAVE_AT"))
           if (el >= std::atof(sv) && !m_test_saved)
-            m_test_saved = SaveStateNow();
+            m_test_saved = SaveSlot(0);
         // SILVER_TEST_RSTICK="2:4:1:0,5:6:0:-1" mueve el joystick derecho (inicio:fin:x:y).
         // SILVER_TEST_LSTICK igual para el joystick izquierdo.
         for (int side = 0; side < 2; side++)
@@ -4225,7 +4520,9 @@ int App::Run(int argc, char** argv)
       }
       if (screenshot_screen == "achievements") m_screen = Screen::Achievements;
       m_lang_open = std::getenv("SILVER_TEST_LANGMENU") != nullptr;
+      RefreshSlots();
       if (screenshot_screen == "choice") m_modal = Modal::PlayChoice;
+      if (screenshot_screen == "slots") OpenSlots(std::getenv("SILVER_TEST_SAVE") != nullptr);
       if (screenshot_screen == "dialog") ShowDialog("Ejemplo de diálogo.\nSegunda línea de texto.");
       if (const char* st = std::getenv("SILVER_TEST_STYLE"))
         m_cfg.prompt_style = st;
