@@ -25,6 +25,7 @@ enum class UiMode : int
   SpriteGray = 9,
   InkWipe = 10,
   Codec = 11, // pantalla del códec: verde oscuro con líneas de barrido y esquinas (uColor2 = borde)
+  Radar = 12, // radar Soliton girando (indicador de espera), en verde uColor
 };
 
 enum class Icon : int

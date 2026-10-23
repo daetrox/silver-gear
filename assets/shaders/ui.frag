@@ -255,6 +255,40 @@ vec4 codec(vec2 uv)
   return vec4(c, max(uColor.a, edge * uColor2.a));
 }
 
+// --- Radar Soliton: retícula, barrido que gira con su estela y puntos que se encienden al pasar ---
+vec4 radar(vec2 uv)
+{
+  vec2 p = uv * 2.0 - 1.0;
+  float r = length(p);
+  if (r > 1.0)
+    return vec4(0.0);
+  float px = 2.0 / uRect.w; // un píxel, en unidades del radar
+  float ang = atan(p.y, p.x);
+  float sweep = mod(uTime * 2.2, 2.0 * PI);
+  float behind = mod(sweep - ang, 2.0 * PI);              // cuánto hace que pasó el barrido
+  float trail = exp(-behind * 2.2);
+  float line = smoothstep(0.035, 0.0, behind) + smoothstep(2.0 * PI - 0.01, 2.0 * PI, behind);
+  // Retícula: anillos, cruz y borde.
+  float rings = smoothstep(px * 1.5, 0.0, abs(fract(r * 3.0 + 0.0001) - 0.0) / 3.0) +
+                smoothstep(px * 1.5, 0.0, abs(r - 1.0 + px * 2.0));
+  float cross = smoothstep(px * 1.2, 0.0, min(abs(p.x), abs(p.y))) * 0.6;
+  // Puntos (enemigos) fijos que brillan cuando el barrido acaba de pasar por ellos.
+  float blips = 0.0;
+  for (int i = 0; i < 5; i++)
+  {
+    float fi = float(i);
+    vec2 b = vec2(cos(fi * 2.4 + 0.7), sin(fi * 2.4 + 0.7)) * (0.3 + 0.13 * fi);
+    float bb = mod(sweep - atan(b.y, b.x), 2.0 * PI);
+    blips += smoothstep(0.07, 0.03, length(p - b)) * exp(-bb * 1.4);
+  }
+  float you = smoothstep(0.06, 0.035, r);                 // Snake, en el centro
+  float a = 0.12 + trail * 0.35 + line + rings * 0.55 + cross + blips + you;
+  vec3 c = uColor.rgb * (0.35 + 0.65 * clamp(a, 0.0, 1.5));
+  c = mix(c, vec3(1.0, 0.35, 0.3), clamp(blips, 0.0, 1.0)); // puntos rojos, como los guardias
+  float edge = smoothstep(1.0, 1.0 - px * 2.0, r);
+  return vec4(c, clamp(a, 0.0, 1.0) * edge * uColor.a);
+}
+
 // --- Barrido de tinta a pantalla completa (apertura y cierre) ---
 // uParam.x = progreso 0..1: a la derecha del borde de pincel queda negro.
 vec4 inkWipe(vec2 uv)
@@ -357,6 +391,7 @@ void main()
   else if (uMode == 8) fragColor = padGlyph(uv);
   else if (uMode == 10) fragColor = inkWipe(uv);
   else if (uMode == 11) fragColor = codec(uv);
+  else if (uMode == 12) fragColor = radar(uv);
   else if (uMode == 9)
   {
     vec4 t = texture(uTex, uv);

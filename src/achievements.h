@@ -66,6 +66,13 @@ public:
   std::string Account() const;
   // Olvida el set descargado (para volver a bajarlo o cambiar de cuenta); conserva los conseguidos.
   void ForgetDownload();
+  // Pruebas: muestra el estado «descargando» con este texto, sin descargar nada.
+  void SimulateWorking(const std::string& text)
+  {
+    m_state = State::Working;
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_progress = text;
+  }
   // Autores del set (de más a menos logros creados), para los créditos.
   std::vector<std::string> Authors() const;
 

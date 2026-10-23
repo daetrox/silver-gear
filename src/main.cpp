@@ -26,6 +26,7 @@ extern "C" {
 #include <SDL.h>
 #include <algorithm>
 #include <atomic>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -4264,7 +4265,28 @@ void App::RenderAchievements()
   RenderHints({{PsButton::Back, L("Volver", "Back")}}, IX(px + pw - 30), IY(py + ph - 64));
   if (st == Achievements::State::Working)
   {
-    m_r.DrawIcon(Icon::Shuriken, IX(px + pw / 2 - 45), IY(py + 420), IS(90), kSilver, 3.0f);
+    // Espera: el radar Soliton girando en una pantalla del códec y, si el estado dice «n/m», el progreso.
+    const float bw = 420, bh = 380, bx = px + (pw - bw) / 2, by = py + 260;
+    CodecBox(IX(bx), IY(by), IS(bw), IS(bh));
+    m_r.Text(m_r.mono, "SOLITON RADAR", IX(bx + 22), IY(by + 16), IS(20), WithAlpha(kCodec, 0.8f));
+    const float rs = 250;
+    m_r.Rect(IX(bx + (bw - rs) / 2), IY(by + 52), IS(rs), IS(rs), UiMode::Radar, kCodec);
+    const std::string status = m_ach.Status();
+    int done = 0, total = 0;
+    if (const size_t slash = status.rfind('/'); slash != std::string::npos && slash > 0)
+    {
+      size_t a = slash;
+      while (a > 0 && std::isdigit(static_cast<unsigned char>(status[a - 1])))
+        a--;
+      done = std::atoi(status.c_str() + a);
+      total = std::atoi(status.c_str() + slash + 1);
+    }
+    const float barx = bx + 40, bary = by + bh - 44, barw = bw - 80;
+    m_r.Rect(IX(barx), IY(bary), IS(barw), IS(8), UiMode::Solid, WithAlpha(kCodec, 0.2f));
+    if (total > 0)
+      m_r.Rect(IX(barx), IY(bary), IS(barw * std::min(1.0f, static_cast<float>(done) / total)), IS(8), UiMode::Solid, kCodec);
+    else // sin cifras: un tramo que va y viene
+      m_r.Rect(IX(barx + (barw - 80) * (0.5f + 0.5f * std::sin(m_time * 2.5f))), IY(bary), IS(80), IS(8), UiMode::Solid, kCodec);
     return;
   }
   if (st != Achievements::State::NeedLogin)
@@ -4734,6 +4756,8 @@ int App::Run(int argc, char** argv)
         m_remap_timer = 4.2f;
       }
       if (screenshot_screen == "achievements") m_screen = Screen::Achievements;
+      if (const char* w = std::getenv("SILVER_TEST_ACH_WORKING")) // pruebas: «Descargando insignias… 12/117»
+        m_ach.SimulateWorking(w);
       m_lang_open = std::getenv("SILVER_TEST_LANGMENU") != nullptr;
       RefreshSlots();
       if (screenshot_screen == "choice") m_modal = Modal::PlayChoice;
