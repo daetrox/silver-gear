@@ -12,6 +12,14 @@
   <img src="https://img.shields.io/badge/sin%20fines%20de%20lucro-%E2%9D%A4-a31515" alt="Sin fines de lucro">
 </p>
 
+<p align="center">
+  <img src="docs/menu.jpg" alt="Menú principal de Silver Gear" width="820">
+</p>
+
+<p align="center">
+  <a href="../../releases/latest"><b>⬇️ Descargar la última versión</b></a> · AppImage para Linux · zip para Windows 10/11
+</p>
+
 > [!NOTE]
 > **En desarrollo.** El fondo del menú lo genera `tools/make_background.py` a partir de la ilustración
 > de la base nevada de daetrox (`tools/photo/base-nevada.png`), con el rótulo propio «SILVER GEAR» y sin
@@ -49,6 +57,21 @@ el launcher de *Tenchu 2*, con la misma arquitectura.
 | 🌍 **Tres idiomas** | Español, inglés y francés; logros de RetroAchievements traducidos al español. |
 | 🧪 **Trucos** | Los de la base de datos chtdb de DuckStation, con las variantes (tarjeta de nivel 1–7, temperatura de la tarjeta PAL…). |
 | ❄️ **Menú ártico** | Base militar en la montaña nevada con soldados de camuflaje invernal, nieve con viento; español e inglés. |
+
+## Capturas
+
+| | |
+|:---:|:---:|
+| <img src="docs/opciones.jpg" width="400"><br>Opciones por categorías | <img src="docs/graficos.jpg" width="400"><br>Gráficos: resolución, filtros, 16:9, CRT |
+| <img src="docs/codec.jpg" width="400"><br>Apertura y carga con el códec (140.85) | <img src="docs/controles.jpg" width="400"><br>Controles y ayuda sin destripes |
+| <img src="docs/logros.jpg" width="400"><br>Descarga de logros con el radar Soliton | |
+
+## Instalación
+
+- **Linux:** descarga el `.AppImage`, dale permiso de ejecución y ábrelo. Pon tus discos en una carpeta
+  `game/` junto al AppImage (o elígelos en OPCIONES).
+- **Windows 10/11:** descomprime el `.zip`, copia tus discos en la carpeta `game/` y abre `SilverGear.exe`.
+- La versión de Windows aún no se ha probado en un Windows real: si algo falla, abre una *issue*.
 
 ## Discos
 
