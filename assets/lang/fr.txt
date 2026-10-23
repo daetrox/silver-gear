@@ -345,3 +345,4 @@ GAME	JEU
 SOUND	SON
 Menu title  ·  Omnibus-Type  ·  SIL OFL 1.1	Titre du menu  ·  Omnibus-Type  ·  SIL OFL 1.1
 Codec screen  ·  Carrois Type Design  ·  SIL OFL 1.1	Écran du codec  ·  Carrois Type Design  ·  SIL OFL 1.1
+END OF TRANSMISSION	FIN DE TRANSMISSION
