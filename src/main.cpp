@@ -1696,11 +1696,12 @@ void App::NavigateImpl(int dy, int dx)
   }
   if (m_modal == Modal::Slots)
   {
-    if (dy)
+    // Las fichas van en fila: izquierda y derecha (cruceta, flechas o joystick).
+    if (dx)
     {
-      m_slot_sel = (m_slot_sel + dy + kSlots) % kSlots;
+      m_slot_sel = (m_slot_sel + dx + kSlots) % kSlots;
       if (m_slots_save && m_slot_sel == 0) // el autoguardado no se elige a mano
-        m_slot_sel = (m_slot_sel + dy + kSlots) % kSlots;
+        m_slot_sel = (m_slot_sel + dx + kSlots) % kSlots;
     }
     return;
   }
