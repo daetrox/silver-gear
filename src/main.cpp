@@ -83,6 +83,7 @@ float Smooth(float a, float b, float x)
 
 // Duraciones de las animaciones de apertura y cierre (segundos).
 constexpr float kIntroLen = 3.0f;
+constexpr float kLoadRelease = 1.9f; // pantalla de carga: la partida empieza aquí, con el fundido
 constexpr float kOutroLen = 1.6f;
 
 std::string BaseName(const std::string& path)
@@ -676,6 +677,8 @@ private:
   // Pantalla de carga: el códec sintonizando la frecuencia 140.85 (`t` en segundos desde que empezó).
   void RenderLoading(float t, float alpha);
   float m_load_t = -1; // >= 0 durante la pantalla de carga de la partida
+  // ¿La partida sigue retenida por la pantalla de carga?
+  bool LoadingHold() const { return m_load_t >= 0 && m_load_t < kLoadRelease; }
   bool m_hint_reveal = false; // ayuda de CONTROLES: frecuencia de Meryl a la vista
   // Aviso de rendimiento: frames emulados frente a los que tocaban, en ventanas de 5 s de juego.
   float m_speed_t = 0, m_play_t = 0;
@@ -1199,6 +1202,8 @@ void App::StartGame(int slot)
   }
   m_emu.SetRumbleTarget(m_pad);
   m_emu.SetRumbleStrength(m_cfg.rumble);
+  // Retenido mientras se ve la pantalla de carga: el juego (y su sonido) empieza cuando se desvanece.
+  m_emu.SetPaused(true);
   if (slot >= 0 && !m_emu.LoadState(StatePath(slot)))
     Toast(L("No se pudo cargar la partida guardada", "Could not load the saved game"));
   if (slot > 0)
@@ -1291,7 +1296,7 @@ void App::ActivatePause(int index)
     m_audio.Play(index == PAUSE_RESUME ? Sfx::Cancel : Sfx::Select);
   auto resume = [this]() {
     m_paused = false;
-    m_emu.SetPaused(false);
+    m_emu.SetPaused(LoadingHold());
   };
   switch (index)
   {
@@ -1970,7 +1975,7 @@ void App::Back()
     case Screen::Game:
       m_paused = !m_paused;
       m_pause_sel = 0;
-      m_emu.SetPaused(m_paused);
+      m_emu.SetPaused(m_paused || LoadingHold());
       break;
     default: break;
   }
@@ -2506,6 +2511,9 @@ void App::Update(float dt)
   if (m_load_t >= 0)
   {
     m_load_t += dt;
+    // La emulación arranca al empezar el fundido de la pantalla de carga.
+    if (m_load_t >= kLoadRelease && !m_paused)
+      m_emu.SetPaused(false);
     if (m_load_t > 2.5f || m_screen != Screen::Game)
       m_load_t = -1;
   }
@@ -2584,7 +2592,7 @@ void App::Render()
     m_lang_open = false;
     RenderGame();
     if (m_load_t >= 0)
-      RenderLoading(m_load_t, 1.0f - Smooth(1.9f, 2.5f, m_load_t));
+      RenderLoading(m_load_t, 1.0f - Smooth(kLoadRelease, 2.5f, m_load_t));
     if (m_screen == Screen::Controls)
       RenderControls();
     else if (m_paused)
@@ -3401,7 +3409,7 @@ void App::ActivateSlot(int slot)
   if (m_emu.IsRunning())
   {
     m_paused = false;
-    m_emu.SetPaused(false);
+    m_emu.SetPaused(LoadingHold());
   }
 }
 
