@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstring>
 #include <ctime>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <thread>
@@ -22,7 +23,7 @@ extern "C" {
 
 namespace {
 
-constexpr const char* kUserAgent = "TenchuLauncher/0.2 (Linux) rcheevos/12.5";
+constexpr const char* kUserAgent = "SilverGear/0.1 (Linux) rcheevos/12.5";
 constexpr const char* kServer = "https://retroachievements.org/dorequest.php";
 
 Achievements* g_active = nullptr; // sesión con el runtime activo (callbacks sin userdata)
@@ -399,6 +400,10 @@ void Achievements::DownloadThread(std::string user, std::string password)
       CurlFetch("https://media.retroachievements.org/Badge/" + badge + ".png", "", out);
   }
 
+  // La cuenta con la que se descargaron (sólo el nombre, para mostrarlo en Opciones).
+  if (std::ofstream acc(Platform::Path(dir + "/cuenta.txt"), std::ios::trunc); acc)
+    acc << real_user << "\n";
+
   // Guardar hash -> id.
   {
     std::ofstream idx(Platform::Path(base + "/hashes.txt"), std::ios::app);
@@ -409,6 +414,32 @@ void Achievements::DownloadThread(std::string user, std::string password)
     m_game_id = game_id;
   }
   m_thread_done = true;
+}
+
+std::string Achievements::Account() const
+{
+  std::string user;
+  if (m_game_id)
+    if (std::ifstream in(Platform::Path(GameDir() + "/cuenta.txt")); in)
+      std::getline(in, user);
+  return user;
+}
+
+void Achievements::ForgetDownload()
+{
+  if (!m_game_id || m_thread_running)
+    return;
+  // Se borran el set y las insignias; los logros conseguidos (unlocks.txt) se conservan.
+  std::error_code ec;
+  std::filesystem::remove(Platform::Path(GameDir() + "/set.json"), ec);
+  std::filesystem::remove(Platform::Path(GameDir() + "/cuenta.txt"), ec);
+  std::filesystem::remove_all(Platform::Path(GameDir() + "/badges"), ec);
+  for (Achievement& a : m_list)
+    if (a.icon.id)
+      glDeleteTextures(1, &a.icon.id);
+  m_list.clear();
+  m_game_title.clear();
+  m_state = State::NeedLogin;
 }
 
 void Achievements::Poll()

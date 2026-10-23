@@ -324,6 +324,7 @@ void Config::Load()
     else if (key == "ntsc_mode") ntsc_mode = b;
     else if (key == "subtitles") subtitles = b;
     else if (key == "autosave") autosave = b;
+    else if (key == "rumble") rumble = std::clamp(std::atoi(val.c_str()), 0, 100);
     else if (key == "cheats") cheats = val;
     else if (key == "hardcore") hardcore = b;
     else if (key.rfind("key_", 0) == 0 || key.rfind("pad_", 0) == 0)
@@ -375,6 +376,7 @@ void Config::Save() const
   out << "ntsc_mode=" << ntsc_mode << "\n";
   out << "subtitles=" << subtitles << "\n";
   out << "autosave=" << autosave << "\n";
+  out << "rumble=" << rumble << "\n";
   out << "cheats=" << cheats << "\n";
   out << "hardcore=" << hardcore << "\n";
   for (int i = 0; i < kPsButtons; i++)

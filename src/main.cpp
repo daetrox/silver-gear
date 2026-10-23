@@ -415,6 +415,9 @@ enum OptRow
   OPT_NTSC,
   OPT_SUBTITLES,
   OPT_AUTOSAVE,
+  OPT_RA_ACCOUNT,
+  OPT_RA_FORGET,
+  OPT_RUMBLE,
   OPT_BACK,
 };
 
@@ -475,9 +478,9 @@ const std::vector<int>& OptPageRows(int page)
     {OPT_GAME, OPT_DISC2, OPT_BIOS, OPT_BIOS_LOAD, OPT_FASTBOOT, OPT_BACK},
     {OPT_RENDERER, OPT_SCALE, OPT_TEXFILTER, OPT_PGXP, OPT_WIDESCREEN, OPT_SCREENFILTER, OPT_SIDEART, OPT_SMOOTH,
      OPT_FULLSCREEN, OPT_BACK},
-    {OPT_NTSC, OPT_SUBTITLES, OPT_AUTOSAVE, OPT_HARDCORE, OPT_BACK},
+    {OPT_NTSC, OPT_SUBTITLES, OPT_AUTOSAVE, OPT_HARDCORE, OPT_RA_ACCOUNT, OPT_RA_FORGET, OPT_BACK},
     {OPT_VOLUME, OPT_MUSIC, OPT_SFX, OPT_BACK},
-    {OPT_PROMPTS, OPT_REMAP_KB, OPT_REMAP_PAD, OPT_RESET_CONTROLS, OPT_CONTROLS, OPT_BACK},
+    {OPT_PROMPTS, OPT_RUMBLE, OPT_REMAP_KB, OPT_REMAP_PAD, OPT_RESET_CONTROLS, OPT_CONTROLS, OPT_BACK},
     {OPT_BACK}, // TRUCOS tiene su propia pantalla
   };
   return pages[std::clamp(page, 0, kOptCategoryCount - 1)];
@@ -732,6 +735,8 @@ private:
   }
   // Cambia al otro disco en plena partida (como abrir la tapa de la consola).
   void SwapDisc();
+  // Guarda la imagen del juego en PNG (carpeta «capturas» junto al launcher).
+  void TakeScreenshot();
   // Qué parches del juego (16:9, 60 Hz, subtítulos) hay para el disco elegido.
   void UpdatePatchAvailability()
   {
@@ -845,6 +850,7 @@ private:
   int m_remap_wait = -1;    // botón (RETRO_DEVICE_ID_JOYPAD_*) que espera una tecla/botón nuevo
   float m_remap_timer = 0;
   float m_reset_confirm = 0; // > 0: "Restaurar controles" pide una segunda pulsación
+  float m_forget_confirm = 0; // > 0: "Borrar logros descargados" pide una segunda pulsación
   int m_marquee_key = -1; // fila cuyo texto se está desplazando
   float m_marquee_start = 0;
 
@@ -1105,6 +1111,23 @@ void App::SetGamePath(const std::string& path)
   m_cfg.Save();
 }
 
+void App::TakeScreenshot()
+{
+  std::vector<uint8_t> frame;
+  int w = 0, h = 0;
+  if (!m_emu.CaptureFrame(&frame, &w, &h))
+    return;
+  const std::string dir = Paths::UserDir() + "/capturas";
+  Paths::MakeDirs(dir);
+  char name[64];
+  const time_t t = std::time(nullptr);
+  std::strftime(name, sizeof(name), "/MGS-%Y%m%d-%H%M%S.png", std::localtime(&t));
+  const bool ok = WritePng(dir + name, frame.data(), w, h);
+  m_audio.Play(ok ? Sfx::Select : Sfx::Cancel);
+  Toast(ok ? std::string(L("Captura guardada en ", "Screenshot saved in ")) + "capturas" + name
+           : std::string(L("No se pudo guardar la captura", "Could not save the screenshot")));
+}
+
 void App::SwapDisc()
 {
   const int count = m_emu.DiscCount();
@@ -1174,6 +1197,7 @@ void App::StartGame(int slot)
     return;
   }
   m_emu.SetRumbleTarget(m_pad);
+  m_emu.SetRumbleStrength(m_cfg.rumble);
   if (slot >= 0 && !m_emu.LoadState(StatePath(slot)))
     Toast(L("No se pudo cargar la partida guardada", "Could not load the saved game"));
   if (slot > 0)
@@ -1521,6 +1545,32 @@ void App::OptionChange(int row, int dir)
       m_cfg.subtitles = !m_cfg.subtitles;
       break;
     case OPT_AUTOSAVE: m_cfg.autosave = !m_cfg.autosave; break;
+    case OPT_RA_ACCOUNT:
+      if (!activate)
+        return;
+      m_screen = Screen::Achievements;
+      m_ach_scroll = m_ach_scroll_target = 0;
+      m_ach_sel = 0;
+      m_login_focus = 0;
+      return;
+    case OPT_RA_FORGET:
+      if (!activate || m_ach.GetState() != Achievements::State::Ready)
+        return;
+      if (m_forget_confirm > 0)
+      {
+        m_ach.ForgetDownload();
+        m_forget_confirm = 0;
+        Toast(L("Logros descargados borrados: vuelve a iniciar sesión en LOGROS", "Downloaded achievements removed: log in again in ACHIEVEMENTS"));
+        return;
+      }
+      m_forget_confirm = 3.0f;
+      return;
+    case OPT_RUMBLE:
+      m_cfg.rumble = activate ? (m_cfg.rumble >= 100 ? 0 : m_cfg.rumble + 10) : std::clamp(m_cfg.rumble + dir * 10, 0, 100);
+      m_emu.SetRumbleStrength(m_cfg.rumble);
+      if (m_pad && m_cfg.rumble > 0) // muestra breve de la intensidad
+        SDL_GameControllerRumble(m_pad, static_cast<Uint16>(0xFFFF * m_cfg.rumble / 100), static_cast<Uint16>(0xFFFF * m_cfg.rumble / 100), 180);
+      break;
     case OPT_SFX:
       m_cfg.sfx_volume = activate ? (m_cfg.sfx_volume >= 100 ? 0 : m_cfg.sfx_volume + 10)
                                   : std::clamp(m_cfg.sfx_volume + dir * 10, 0, 100);
@@ -2057,7 +2107,17 @@ void App::HandleEvent(const SDL_Event& e)
       break;
     }
 
-    case SDL_CONTROLLERDEVICEADDED: OpenController(e.cdevice.which); break;
+    case SDL_CONTROLLERDEVICEADDED:
+      if (!m_pad)
+      {
+        OpenController(e.cdevice.which);
+        if (m_pad && m_intro_t > kIntroLen) // al abrir el launcher no hace falta avisar
+        {
+          const char* name = SDL_GameControllerName(m_pad);
+          Toast(std::string(L("Mando conectado", "Controller connected")) + (name ? std::string(": ") + name : ""));
+        }
+      }
+      break;
     case SDL_CONTROLLERDEVICEREMOVED:
       if (m_pad && SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(m_pad)) == e.cdevice.which)
       {
@@ -2065,6 +2125,7 @@ void App::HandleEvent(const SDL_Event& e)
         m_pad = nullptr;
         m_emu.SetRumbleTarget(nullptr);
         m_last_device = PromptStyle::Keyboard;
+        Toast(L("Mando desconectado", "Controller disconnected"));
         if (m_screen == Screen::Game && !m_paused)
           Back(); // pausa automática al desconectar el mando
       }
@@ -2147,6 +2208,8 @@ void App::HandleEvent(const SDL_Event& e)
         }
         else if (key == SDLK_F8 && !e.key.repeat)
           SwapDisc();
+        else if (key == SDLK_F10 && !e.key.repeat)
+          TakeScreenshot();
         else if ((key == SDLK_F5 || key == SDLK_F7) && StatesBlocked())
         {
         }
@@ -2330,6 +2393,7 @@ void App::Update(float dt)
   }
   m_toast_time = std::max(0.0f, m_toast_time - dt);
   m_reset_confirm = std::max(0.0f, m_reset_confirm - dt);
+  m_forget_confirm = std::max(0.0f, m_forget_confirm - dt);
   if (m_remap_wait >= 0)
   {
     m_remap_timer -= dt;
@@ -3473,6 +3537,27 @@ void App::RenderOptions()
                                   : L("50 Hz (PAL original)", "50 Hz (original PAL)"),
                 m_ntsc_available, m_ntsc_available};
       case OPT_AUTOSAVE: return {L("Guardar al salir", "Save on quit"), yesno(m_cfg.autosave), true, true};
+      case OPT_RA_ACCOUNT:
+      {
+        const Achievements::State st = m_ach.GetState();
+        const std::string user = m_ach.Account();
+        std::string v = st == Achievements::State::Ready
+                          ? std::string(L("Descargados", "Downloaded")) + (user.empty() ? "" : "  ·  " + user)
+                        : st == Achievements::State::NotSupported ? L("Este disco no tiene logros", "This disc has no achievements")
+                        : st == Achievements::State::Working      ? L("Descargando…", "Downloading…")
+                        : st == Achievements::State::NoGame       ? L("Elige primero el disco", "Choose the disc first")
+                                                                  : L("Sin descargar: iniciar sesión", "Not downloaded: log in");
+        return {L("Logros (RetroAchievements)", "Achievements (RetroAchievements)"), v};
+      }
+      case OPT_RA_FORGET:
+      {
+        const bool ready = m_ach.GetState() == Achievements::State::Ready;
+        return {L("Borrar los logros descargados", "Remove downloaded achievements"),
+                m_forget_confirm > 0 ? L("¿Seguro? Pulsa otra vez", "Sure? Press again") : "", ready, false};
+      }
+      case OPT_RUMBLE:
+        return {L("Vibración del mando", "Controller rumble"), m_cfg.rumble == 0 ? L("Apagada", "Off") : std::to_string(m_cfg.rumble) + "%",
+                true, true, m_cfg.rumble / 100.0f};
       case OPT_SUBTITLES:
         return {L("Subtítulos de las escenas", "Cutscene subtitles"),
                 m_subs_available ? yesno(m_cfg.subtitles) : L("Sí (no se pueden quitar en este disco)", "Yes (cannot be removed on this disc)"),
@@ -3630,6 +3715,24 @@ void App::RenderOptions()
                "como la americana y la japonesa (sube la velocidad de la CPU emulada). Se aplica al empezar la partida.",
                "The European version runs at 50 Hz: slower and letterboxed. PeterDelta's patch makes it 60 Hz, like the "
                "US and Japanese ones (it raises the emulated CPU speed). Applied when the game starts.");
+      break;
+    case OPT_RA_ACCOUNT:
+      help = L("Abre LOGROS: allí se inicia sesión (una sola vez) para descargar los logros de tu disco. La "
+               "contraseña no se guarda.",
+               "Opens ACHIEVEMENTS: log in there (just once) to download your disc's achievements. The password is "
+               "not stored.");
+      break;
+    case OPT_RA_FORGET:
+      help = L("Borra el set descargado para volver a bajarlo o usar otra cuenta. Los logros que ya has conseguido "
+               "se conservan.",
+               "Removes the downloaded set so you can download it again or use another account. The achievements "
+               "you already earned are kept.");
+      break;
+    case OPT_RUMBLE:
+      help = L("Intensidad de la vibración del mando en el juego. Al cambiarla, el mando vibra un momento con la "
+               "intensidad elegida.",
+               "Strength of the controller rumble in the game. When you change it, the controller rumbles briefly at "
+               "the chosen strength.");
       break;
     case OPT_AUTOSAVE:
       help = L("Al volver al menú o salir, la partida se guarda en la ranura de autoguardado (además de las tres "
@@ -4019,8 +4122,8 @@ void App::RenderControls()
   m_r.Text(m_r.ui,
            m_cfg.hardcore ? L("F8 cambiar de disco  ·  F11 pantalla completa  ·  modo hardcore: sin F5 / F7",
                               "F8 swap disc  ·  F11 fullscreen  ·  hardcore mode: no F5 / F7")
-                          : L("F5 guardar  ·  F7 cargar  ·  F8 cambiar de disco  ·  F11 pantalla completa",
-                              "F5 save  ·  F7 load  ·  F8 swap disc  ·  F11 fullscreen"),
+                          : L("F5 guardar  ·  F7 cargar  ·  F8 cambiar de disco  ·  F10 captura  ·  F11 pantalla completa",
+                              "F5 save  ·  F7 load  ·  F8 swap disc  ·  F10 screenshot  ·  F11 fullscreen"),
            IX(c0), IY(y + 14), IS(22), kDim);
 
   // Ayudas sin destripes, en una pantalla de códec a la derecha.
@@ -4479,6 +4582,7 @@ int App::Run(int argc, char** argv)
           else if (b == "l3") id = RETRO_DEVICE_ID_JOYPAD_L3;
           else if (b == "select") id = RETRO_DEVICE_ID_JOYPAD_SELECT;
           else if (b == "swap") id = -1; // cambio de disco del launcher (F8)
+          else if (b == "capture") id = -2; // captura de pantalla (F10)
           script.push_back({std::atof(item.substr(0, c).c_str()), id, hold});
         }
       }
@@ -4529,7 +4633,10 @@ int App::Run(int argc, char** argv)
               m_test_buttons |= static_cast<uint16_t>(1u << p.id);
             else
             {
-              SwapDisc();
+              if (p.id == -1)
+                SwapDisc();
+              else
+                TakeScreenshot();
               p.hold = 0; // una sola vez
             }
           }

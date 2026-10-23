@@ -62,6 +62,10 @@ public:
   int TotalPoints() const;
   void LoadIcon(Achievement& a, Renderer& r);
   void ResetUnlocks();
+  // Cuenta de RetroAchievements con la que se descargó el set (vacío si no consta).
+  std::string Account() const;
+  // Olvida el set descargado (para volver a bajarlo o cambiar de cuenta); conserva los conseguidos.
+  void ForgetDownload();
   // Autores del set (de más a menos logros creados), para los créditos.
   std::vector<std::string> Authors() const;
 

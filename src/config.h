@@ -41,6 +41,7 @@ struct Config
   std::string cheats;            // nombres de los trucos activos, separados por '|'
   bool ntsc_mode = true;          // 60 Hz en las versiones PAL (parche «NTSC Mode» de PeterDelta)
   bool subtitles = true;         // subtítulos en las escenas (el parche «Subtitles off» los quita)
+  int rumble = 100;              // intensidad de la vibración del mando, 0..100 %
   bool autosave = true;          // guardar la partida (ranura de autoguardado) al salir del juego
   std::string prompt_style = "auto"; // iconos de botones: auto, keyboard, xbox, playstation
   std::string language;              // "es" o "en"; vacío = según el idioma del sistema
