@@ -90,7 +90,7 @@ para no tocar tu partida.
 - **daetrox** — idea, dirección y diseño. **Claude (Anthropic)** — programación.
 - **SwanStation** (GPL-3.0), **OpenBIOS** de PCSX-Redux (MIT), **rcheevos** (MIT), **SDL2** (zlib), **stb** (dominio público).
 - **PeterDelta** y la comunidad de **chtdb** — parches y trucos.
-- Fuentes **Russo One** y **Oswald** (SIL OFL 1.1).
+- Fuentes **Russo One**, **Oswald**, **Saira** (rótulo) y **Share Tech Mono** (códec), todas SIL OFL 1.1.
 - Fondo: ilustración de daetrox. Alternativa libre (`--noruega`): foto del Sgt. Avery Cunningham, Ejército de EE. UU. (dominio público, DVIDS 8299563).
 
 *Metal Gear Solid* es una marca registrada de Konami Digital Entertainment. Este proyecto no está

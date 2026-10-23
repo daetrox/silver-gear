@@ -109,39 +109,78 @@ col += rng.standard_normal((H, W, 1)).astype(np.float32) * 0.01
 out = Image.fromarray((np.clip(col, 0, 1) * 255).astype(np.uint8))
 
 # --- Rótulo «SILVER GEAR» donde la maqueta tenía el logotipo ----------------------------------------
-fonts = os.path.join(ROOT, "assets", "fonts")
-title = ImageFont.truetype(os.path.join(fonts, "RussoOne-Regular.ttf"), 84)
-small = ImageFont.truetype(os.path.join(fonts, "Oswald[wght].ttf"), 22)
-cx, top = 1331, 96  # centrado sobre los botones (x 1075..1588)
+# Con la estructura del logotipo de Metal Gear Solid, pero con letra libre (Saira, OFL; tools/fonts/):
+# lema en letra ancha arriba, el nombre en cursiva gruesa y condensada con las letras apretadas y, debajo,
+# una franja blanca inclinada con «L A U N C H E R» en negro (donde el original pone «S O L I D»).
+SS = 3                     # supermuestreo del rótulo
+CX, TOP = 1331, 70         # centro horizontal (sobre los botones, x 1075..1588) y borde superior
+SAIRA = os.path.join(HERE, "fonts", "Saira-Italic[wdth,wght].ttf")
 
 
-def spaced(draw, text, font, cx, y, spacing, fill):
-    widths = [draw.textlength(c, font=font) for c in text]
-    total = sum(widths) + spacing * (len(text) - 1)
-    x = cx - total / 2
-    for c, w in zip(text, widths):
-        draw.text((x, y), c, font=font, fill=fill)
-        x += w + spacing
-    return cx - total / 2, cx + total / 2
+def saira(size, weight, width):
+    f = ImageFont.truetype(SAIRA, size * SS)
+    f.set_variation_by_axes([weight, width])  # ejes: peso, anchura
+    return f
 
 
-# Texto en una capa aparte para darle un degradado plateado y una sombra suave.
+def text_layer(text, font, spacing, stroke=0):
+    """Texto en una capa L con espaciado propio (negativo = letras apretadas), recortada a su caja."""
+    probe = ImageDraw.Draw(Image.new("L", (1, 1)))
+    widths = [probe.textlength(c, font=font) for c in text]
+    w = int(sum(widths) + spacing * SS * (len(text) - 1) + font.size + stroke * 4)
+    img = Image.new("L", (w, int(font.size * 1.6)), 0)
+    d = ImageDraw.Draw(img)
+    x = font.size * 0.1 + stroke
+    for c, cw in zip(text, widths):
+        d.text((x, 0), c, font=font, fill=255, stroke_width=stroke, stroke_fill=255)
+        x += cw + spacing * SS
+    return img.crop(img.getbbox())
+
+
+tag = text_layer("TACTICAL ESPIONAGE ACTION", saira(29, 900, 125), 3)
+name = text_layer("SILVER GEAR", saira(122, 900, 80), -5)
+band_txt = text_layer("LAUNCHER", saira(31, 900, 125), 24)
+
+# Lienzo del rótulo (a escala SS): lema, nombre y franja.
+lw = max(tag.width, name.width) + 80 * SS
+gap1, band_h = 8 * SS, 40 * SS
+lh = tag.height + gap1 + name.height + band_h + 20 * SS
+fill = Image.new("L", (lw, lh), 0)      # blanco del rótulo
+ink = Image.new("L", (lw, lh), 0)       # letras negras dentro de la franja
+nx = (lw - name.width) // 2
+fill.paste(tag, ((lw - tag.width) // 2 + 10 * SS, 0), tag)
+ny = tag.height + gap1
+fill.paste(name, (nx, ny), name)
+# Franja inclinada bajo el nombre, algo más corta por la izquierda (como la de SOLID).
+by0 = ny + name.height + 6 * SS
+slant = band_h * 0.55
+band = Image.new("L", (lw, lh), 0)
+ImageDraw.Draw(band).polygon([(nx + 18 * SS + slant, by0), (nx + name.width + 6 * SS, by0),
+                              (nx + name.width + 6 * SS - slant, by0 + band_h), (nx + 18 * SS, by0 + band_h)], fill=255)
+fill = Image.fromarray(np.maximum(np.asarray(fill), np.asarray(band)))
+ink.paste(band_txt, (int(nx + name.width / 2 - band_txt.width / 2), int(by0 + (band_h - band_txt.height) / 2)), band_txt)
+
+# A tamaño final y colocado en la imagen.
+fill = fill.resize((lw // SS, lh // SS), Image.LANCZOS)
+ink = ink.resize((lw // SS, lh // SS), Image.LANCZOS)
+ox, oy = CX - fill.width // 2, TOP
 mask = Image.new("L", (W, H), 0)
-x0, x1 = spaced(ImageDraw.Draw(mask), "SILVER GEAR", title, cx, top, 5, 255)
-grad = np.clip(1.0 - 0.38 * smoothstep(top + 15, top + 95, yy), 0, 1)
+mask.paste(fill, (ox, oy))
+ink_mask = Image.new("L", (W, H), 0)
+ink_mask.paste(ink, (ox, oy))
+# Plateado: blanco arriba que se apaga un poco hacia abajo, y la franja más clara.
+grad = np.clip(1.0 - 0.3 * smoothstep(oy + 20, oy + fill.height, yy), 0, 1)
 silver = (np.stack([grad * 0.93, grad * 0.95, grad], -1) * 255).astype(np.uint8)
-# Sombra: la del propio texto más una placa difusa bajo todo el rótulo (subtítulo incluido), para
-# que lo que haya detrás (el helicóptero) no se mezcle con las letras.
+# Sombra: contorno oscuro de las letras más una placa difusa bajo todo el rótulo, para que lo que haya
+# detrás (el helicóptero) no se mezcle con ellas.
+outline = mask.filter(ImageFilter.MaxFilter(5))
 plate = Image.new("L", (W, H), 0)
-ImageDraw.Draw(plate).rectangle([x0 - 10, top + 6, x1 + 10, top + 150], fill=150)
-shadow_layer = Image.fromarray(np.maximum(np.asarray(mask.filter(ImageFilter.GaussianBlur(10))),
-                                          np.asarray(plate.filter(ImageFilter.GaussianBlur(26)))))
-out = Image.composite(Image.new("RGB", (W, H), (0, 0, 0)), out, shadow_layer.point(lambda p: int(p * 0.7)))
+ImageDraw.Draw(plate).rectangle([ox, oy + 6, ox + fill.width, oy + fill.height], fill=150)
+shadow_layer = Image.fromarray(np.maximum.reduce([np.asarray(outline), np.asarray(mask.filter(ImageFilter.GaussianBlur(10))),
+                                                  np.asarray(plate.filter(ImageFilter.GaussianBlur(26)))]))
+out = Image.composite(Image.new("RGB", (W, H), (0, 0, 0)), out, shadow_layer.point(lambda p: int(p * 0.75)))
 out = Image.composite(Image.fromarray(silver), out, mask)
-d = ImageDraw.Draw(out)
-ly = top + 108
-d.rectangle([x0, ly, x1, ly + 2], fill=(190, 200, 212))
-spaced(d, "TACTICAL ESPIONAGE LAUNCHER", small, cx, ly + 12, 6, (170, 182, 196))
+out = Image.composite(Image.new("RGB", (W, H), (12, 14, 18)), out, ink_mask)
 
 dst = os.path.join(ROOT, "assets", "ui", "background_clean.jpg")
 out.save(dst, quality=92)

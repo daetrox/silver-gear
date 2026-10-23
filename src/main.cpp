@@ -4069,6 +4069,8 @@ void App::RenderCredits()
     {0, L("TIPOGRAFÍAS", "TYPEFACES"), ""},
     {1, "Russo One", "Jovanny Lemonad  ·  SIL OFL 1.1"},
     {1, "Oswald", "The Oswald Project Authors  ·  SIL OFL 1.1"},
+    {1, "Saira", L("Rótulo del menú  ·  Omnibus-Type  ·  SIL OFL 1.1", "Menu title  ·  Omnibus-Type  ·  SIL OFL 1.1")},
+    {1, "Share Tech Mono", L("Pantalla del códec  ·  Carrois Type Design  ·  SIL OFL 1.1", "Codec screen  ·  Carrois Type Design  ·  SIL OFL 1.1")},
     {0, L("CON RESPETO A", "WITH RESPECT TO"), ""},
     {1, L("Hideo Kojima, KCE Japan y Konami", "Hideo Kojima, KCE Japan and Konami"), L("Creadores de Metal Gear Solid (1998)", "Creators of Metal Gear Solid (1998)")},
     {3, L("Metal Gear Solid es una marca registrada de Konami Digital Entertainment.", "Metal Gear Solid is a registered trademark of Konami Digital Entertainment."), ""},
