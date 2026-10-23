@@ -39,6 +39,7 @@ add_executable(silvergear
   src/gl.cpp
   src/achievements.cpp
   src/translate.cpp
+  src/i18n.cpp
   src/cheats.cpp
   src/audio.cpp
   src/platform.cpp

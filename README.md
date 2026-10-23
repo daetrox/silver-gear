@@ -44,6 +44,11 @@ el launcher de *Tenchu 2*, con la misma arquitectura.
 | 🎮 **Teclado, Xbox o PlayStation** | Botones personalizables; los iconos del launcher cambian según lo que uses. El joystick analógico funciona en el juego. |
 | ⏸️ **Menú de pausa** | Reanudar, guardar/cargar, cambiar de disco, controles, menú principal y salir. Esc, L3+R3 o el botón central. Nunca roba un botón del juego. |
 | 🏆 **Logros sin conexión** | RetroAchievements: se descargan una vez y después se juegan *offline*. |
+| 💾 **Ranuras con ficha** | Autoguardado al salir y tres ranuras manuales con miniatura, fecha y disco; JUGAR muestra la ficha de la última partida. |
+| 📻 **Estilo códec** | Pantalla de carga sintonizando la 140.85, y avisos, diálogos y logros con el aspecto del códec. |
+| 📺 **Filtros de pantalla** | Líneas de barrido o CRT (curvatura, máscara de color y viñeta); laterales con la ilustración, «ambiente» o negro. |
+| 🧠 **Psycho Mantis** | Pausa › MANDO: PUERTO 2, el truco de la consola original. Ayuda sin destripes (frecuencia de Meryl) en CONTROLES. |
+| 🌍 **Tres idiomas** | Español, inglés y francés; logros de RetroAchievements traducidos al español. |
 | 🧪 **Trucos** | Los de la base de datos chtdb de DuckStation, con las variantes (tarjeta de nivel 1–7, temperatura de la tarjeta PAL…). |
 | ❄️ **Menú ártico** | Base militar en la montaña nevada con soldados de camuflaje invernal, nieve con viento; español e inglés. |
 
@@ -62,6 +67,7 @@ Probado con la versión española **Rev 1** (`SLES-01734` / `SLES-11734`, redump
 | Esc · L3+R3 · botón central | Pausa |
 | F5 / F7 | Guardar / cargar estado |
 | F8 | Cambiar de disco |
+| F10 | Captura de pantalla (carpeta `capturas/`) |
 | F11 · Alt+Intro | Pantalla completa |
 | F12 | Volcado de la RAM (diagnóstico) |
 

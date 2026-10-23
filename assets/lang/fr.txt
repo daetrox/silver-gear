@@ -1,0 +1,345 @@
+# Interface de Silver Gear en français : « texte anglais<TAB>texte français » (\n = saut de ligne).
+# Les textes absents restent en anglais. Liste des manquants : python3 tools/i18n_extract.py
+Select the game image in OPTIONS first.	Choisissez d'abord l'image du jeu dans OPTIONS.
+This disc has no achievements on RetroAchievements.	Ce disque n'a pas de succès sur RetroAchievements.
+Log in once to download the achievements. After that they work offline.	Connectez-vous une fois pour télécharger les succès. Ensuite, ils fonctionnent hors ligne.
+Connecting to RetroAchievements…	Connexion à RetroAchievements…
+Identifying the disc…	Identification du disque…
+Could not connect to RetroAchievements.\nCheck your internet connection.	Impossible de se connecter à RetroAchievements.\nVérifiez votre connexion Internet.
+RetroAchievements does not recognise this version of the disc.	RetroAchievements ne reconnaît pas cette version du disque.
+Logging in…	Connexion…
+Could not log in (no response from the server).	Connexion impossible (pas de réponse du serveur).
+Login rejected	Connexion refusée
+Downloading achievements…	Téléchargement des succès…
+Could not download the achievement set.	Impossible de télécharger la liste des succès.
+Unexpected server response while downloading the achievements.	Réponse inattendue du serveur pendant le téléchargement des succès.
+Could not load the emulation core:\n	Impossible de charger le cœur d'émulation :\n
+The core does not export 	Le cœur n'exporte pas
+Game image not found.\nSelect it in OPTIONS.	Image du jeu introuvable.\nSélectionnez-la dans OPTIONS.
+The core could not start the game.\nCheck the disc image and the BIOS.	Le cœur n'a pas pu lancer le jeu.\nVérifiez l'image du disque et le BIOS.
+Could not create the emulator's OpenGL context:\n	Impossible de créer le contexte OpenGL de l'émulateur :\n
+Options	Options
+All files	Tous les fichiers
+The game's two discs, console BIOS and boot.	Les deux disques du jeu, le BIOS de la console et le démarrage.
+Resolution, filters, widescreen and fullscreen.	Résolution, filtres, écran large et plein écran.
+60 Hz for the European version, cutscene subtitles and hardcore mode.	60 Hz pour la version européenne, sous-titres des cinématiques et mode hardcore.
+Game, music and sound effects volume.	Volume du jeu, de la musique et des effets.
+Button icons, remapping and controls layout.	Icônes des boutons, personnalisation et schéma des commandes.
+Infinite health, weapons, items and more. While cheats are active, achievements are paused.	Vie infinie, armes, objets et plus. Tant que des codes sont actifs, les succès sont en pause.
+Up	Haut
+Down	Bas
+Left	Gauche
+Right	Droite
+Cross	Croix
+Circle	Rond
+Square	Carré
+Triangle	Triangle
+Left click	Clic gauche
+Right click	Clic droit
+Middle click	Clic central
+Wheel up	Molette haut
+Wheel down	Molette bas
+Enter (keypad)	Entrée (pavé num.)
+Backspace	Retour arrière
+Space	Espace
+Left Shift	Maj gauche
+Right Shift	Maj droite
+Left Ctrl	Ctrl gauche
+Right Ctrl	Ctrl droit
+Caps Lock	Verr. Maj
+Not available in hardcore mode	Indisponible en mode hardcore
+OpenGL 3.3 not available: 	OpenGL 3.3 indisponible :
+OpenGL 3.3 functions are missing	Des fonctions d'OpenGL 3.3 manquent
+Interface images missing in 	Images de l'interface manquantes dans
+Screenshot saved in 	Capture enregistrée dans
+Could not save the screenshot	Impossible d'enregistrer la capture
+No second disc: put it next to the first one or choose it in OPTIONS	Pas de deuxième disque : placez-le à côté du premier ou choisissez-le dans OPTIONS
+Could not change disc	Impossible de changer de disque
+No disc image selected.\n\nCopy it into the launcher's game/ folder,\nchoose it in OPTIONS · DISCS & BIOS,\nor drag it onto the window.	Aucune image de disque sélectionnée.\n\nCopiez-la dans le dossier game/ du launcher,\nchoisissez-la dans OPTIONS · DISQUES ET BIOS,\nou faites-la glisser sur la fenêtre.
+Hardcore mode only works with your PlayStation's original BIOS.\n\nLoad it in OPTIONS · DISCS & BIOS, or turn hardcore mode off in OPTIONS · GAME.	Le mode hardcore ne fonctionne qu'avec le BIOS original de votre PlayStation.\n\nChargez-le dans OPTIONS · DISQUES ET BIOS, ou désactivez le mode hardcore dans OPTIONS · JEU.
+Could not load the saved game	Impossible de charger la partie sauvegardée
+Cheats active: achievements are paused	Codes actifs : les succès sont en pause
+Hardcore mode: no save states or cheats	Mode hardcore : ni sauvegardes instantanées ni codes
+Controller in port 2	Manette sur le port 2
+Controller in port 1	Manette sur le port 1
+BIOS added: 	BIOS ajouté :
+Could not copy the BIOS	Impossible de copier le BIOS
+Enter your RetroAchievements username and password	Saisissez votre nom d'utilisateur et votre mot de passe RetroAchievements
+Neither zenity nor kdialog was found.\nDrag the disc image onto the window.	Ni zenity ni kdialog n'ont été trouvés.\nFaites glisser l'image du disque sur la fenêtre.
+Disc 1 image	Image du disque 1
+Neither zenity nor kdialog was found.\nPut Disc 2 next to Disc 1 with the same name (Disc 2).	Ni zenity ni kdialog n'ont été trouvés.\nPlacez le disque 2 à côté du disque 1 avec le même nom (Disc 2).
+Disc 2 image	Image du disque 2
+Neither zenity nor kdialog was found.\nDrag the BIOS file (512 KB) onto the window.	Ni zenity ni kdialog n'ont été trouvés.\nFaites glisser le fichier du BIOS (512 Ko) sur la fenêtre.
+PlayStation BIOS	BIOS PlayStation
+Downloaded achievements removed: log in again in ACHIEVEMENTS	Succès téléchargés supprimés : reconnectez-vous dans SUCCÈS
+Hardcore mode enabled.\n\nIt needs your PlayStation's original BIOS: load it with “Load new BIOS…” and choose it in the BIOS row.	Mode hardcore activé.\n\nIl faut le BIOS original de votre PlayStation : chargez-le avec « Charger un nouveau BIOS… » et choisissez-le à la ligne BIOS.
+Controls restored to defaults	Commandes par défaut restaurées
+Disable all	Tout désactiver
+Reset my achievements	Réinitialiser mes succès
+Achievements reset	Succès réinitialisés
+Cheats disabled	Codes désactivés
+Keyboard restored to defaults	Clavier par défaut restauré
+Controller restored to defaults	Manette par défaut restaurée
+That key is reserved by the launcher	Cette touche est réservée au launcher
+The centre button is reserved for pause	Le bouton central est réservé à la pause
+Game: 	Jeu :
+File not recognised	Fichier non reconnu
+Controller connected	Manette connectée
+Controller disconnected	Manette déconnectée
+Shaders reloaded	Shaders rechargés
+Shader error	Erreur de shader
+RAM saved for diagnostics	RAM enregistrée pour le diagnostic
+: game saved	 : partie sauvegardée
+Could not save	Sauvegarde impossible
+: game loaded	 : partie chargée
+: empty	 : vide
+No changes	Aucun changement
+The game is running slow: lower the internal resolution in OPTIONS › GRAPHICS	Le jeu ralentit : baissez la résolution interne dans OPTIONS › GRAPHISMES
+View	Affichage
+Menu	Menu
+D-pad up	Croix haut
+D-pad down	Croix bas
+D-pad left	Croix gauche
+D-pad right	Croix droite
+Share	Partage
+Touchpad	Pavé tactile
+Arrows	Flèches
+D-pad	Croix directionnelle
+Custom	Personnalisée
+Left stick	Stick gauche
+Right stick	Stick droit
+PLAY	JOUER
+ACHIEVEMENTS	SUCCÈS
+OPTIONS	OPTIONS
+CREDITS	CRÉDITS
+QUIT	QUITTER
+No disc: copy your image into the game/ folder or drag it here	Pas de disque : copiez votre image dans le dossier game/ ou faites-la glisser ici
+Disc: 	Disque :
+  ·  Disc 2 missing	  ·  disque 2 manquant
+Accept	Valider
+CONTINUE	CONTINUER
+LOAD GAME	CHARGER
+NEW GAME	NOUVELLE PARTIE
+CANCEL	ANNULER
+LATEST GAME	DERNIÈRE PARTIE
+Back	Retour
+Autosave	Sauvegarde auto
+Empty	Vide
+Unknown date	Date inconnue
+%m/%d/%Y  %H:%M	%d/%m/%Y  %H:%M
+Could not save the game	Impossible de sauvegarder la partie
+Could not load the game	Impossible de charger la partie
+SAVE GAME	SAUVEGARDER
+Choose a slot: an existing game in it is replaced. The autosave happens on its own when you quit.	Choisissez un emplacement : la partie qu'il contient sera remplacée. La sauvegarde auto se fait toute seule en quittant.
+F5 / F7 quick-save and quick-load in the last slot used.	F5 / F7 sauvegardent et chargent aussitôt dans le dernier emplacement utilisé.
+Save	Sauvegarder
+Load	Charger
+BACK	RETOUR
+ · free software (GPL-3.0) · non-profit	 · logiciel libre (GPL-3.0) · sans but lucratif
+Core: SwanStation (GPL-3.0) · Achievements: rcheevos (MIT) / RetroAchievements	Cœur : SwanStation (GPL-3.0) · Succès : rcheevos (MIT) / RetroAchievements
+Fonts: Russo One, Oswald (OFL)  ·  Patches and cheats: chtdb (PeterDelta and others)	Polices : Russo One, Oswald (OFL)  ·  Patchs et codes : chtdb (PeterDelta et autres)
+Yes	Oui
+Disc 1	Disque 1
+(not selected)	(non sélectionné)
+Disc 2	Disque 2
+(not found)	(introuvable)
+OpenBIOS (free, built-in)	OpenBIOS (libre, intégré)
+Load new BIOS…	Charger un nouveau BIOS…
+Fast boot	Démarrage rapide
+Hardcore mode	Mode hardcore
+Yes (original BIOS missing)	Oui (BIOS original manquant)
+Renderer	Rendu
+OpenGL (enhanced)	OpenGL (amélioré)
+Software (accurate)	Logiciel (précis)
+Internal resolution	Résolution interne
+Bilinear	Bilinéaire
+Texture filter	Filtre de textures
+Fix geometry (PGXP)	Corriger la géométrie (PGXP)
+Maximum	Maximum
+Aspect ratio	Format d'image
+16:9 (widescreen)	16:9 (écran large)
+4:3 (16:9 not available for this disc)	4:3 (16:9 indisponible pour ce disque)
+Side borders	Bords latéraux
+Ambient (the game)	Ambiance (le jeu)
+Artwork	Illustration
+Black	Noir
+Screen filter	Filtre d'écran
+CRT (tube TV)	CRT (télé cathodique)
+Scanlines	Lignes de balayage
+None	Aucun
+Smooth image	Lisser l'image
+Fullscreen	Plein écran
+Game volume	Volume du jeu
+Music volume	Volume de la musique
+Effects volume	Volume des effets
+Game speed	Vitesse du jeu
+Original (not needed for this disc)	Originale (inutile pour ce disque)
+60 Hz (NTSC)	60 Hz (NTSC)
+50 Hz (original PAL)	50 Hz (PAL d'origine)
+Save on quit	Sauvegarder en quittant
+Downloaded	Téléchargés
+This disc has no achievements	Ce disque n'a pas de succès
+Downloading…	Téléchargement…
+Choose the disc first	Choisissez d'abord le disque
+Not downloaded: log in	Non téléchargés : se connecter
+Achievements (RetroAchievements)	Succès (RetroAchievements)
+Remove downloaded achievements	Supprimer les succès téléchargés
+Sure? Press again	Sûr ? Appuyez à nouveau
+Controller rumble	Vibration de la manette
+Off	Désactivée
+Cutscene subtitles	Sous-titres des cinématiques
+Yes (cannot be removed on this disc)	Oui (impossible de les retirer sur ce disque)
+Keyboard	Clavier
+Automatic	Automatique
+Button icons	Icônes des boutons
+Customise keyboard	Personnaliser le clavier
+Customise controller	Personnaliser la manette
+Restore default controls	Restaurer les commandes par défaut
+View controls layout	Voir le schéma des commandes
+Your copy of Disc 1 (.cue, .bin, .chd…). The launcher's game/ folder is detected automatically.	Votre copie du disque 1 (.cue, .bin, .chd…). Le dossier game/ du launcher est détecté automatiquement.
+The game asks for Disc 2 halfway through the story. It is found automatically next to Disc 1; with both, they share a memory card and you swap from the pause menu (SWAP DISC) or with F8.	Le jeu demande le disque 2 au milieu de l'histoire. Il est trouvé automatiquement à côté du disque 1 ; les deux partagent alors une carte mémoire et on change de disque depuis la pause (CHANGER DE DISQUE) ou avec F8.
+OpenBIOS is free and built in. If a game has problems, load your console's BIOS and choose it here.	OpenBIOS est libre et intégré. Si un jeu pose problème, chargez le BIOS de votre console et choisissez-le ici.
+Copies a BIOS (512 KB file) into the bios/ folder and selects it.	Copie un BIOS (fichier de 512 Ko) dans le dossier bios/ et le sélectionne.
+Skips the console's boot animation.	Passe l'animation de démarrage de la console.
+Like on the console: original BIOS, no save states or cheats; memory card only. Achievements earned this way are marked as hardcore.	Comme sur la console : BIOS original, ni sauvegardes instantanées ni codes ; carte mémoire uniquement. Les succès obtenus ainsi sont marqués hardcore.
+OpenGL allows high resolution. Software is the most faithful to the original hardware.	OpenGL permet la haute résolution. Le rendu logiciel est le plus fidèle à la console d'origine.
+PlayStation resolution multiplied: 4x ≈ 960p, 5x ≈ 1080p. 3x is not offered because with this core it can corrupt text.	Résolution de la PlayStation multipliée : 4x ≈ 960p, 5x ≈ 1080p. Le 3x n'est pas proposé car avec ce cœur il peut corrompre le texte.
+xBR and JINC2 redraw textures in high definition. Original = pixels as they are.	xBR et JINC2 redessinent les textures en haute définition. Original = pixels tels quels.
+Stops polygons and textures from wobbling or “breathing”. Maximum also fixes the floor and the scenery (uses a bit more CPU).	Empêche les polygones et les textures de trembler ou de « respirer ». Maximum corrige aussi le sol et le décor (un peu plus de CPU).
+4:3 is the original format. 16:9 uses a patch of the game itself (PeterDelta): a wider field of view without stretching the image.	Le 4:3 est le format d'origine. Le 16:9 utilise un patch du jeu lui-même (PeterDelta) : un champ de vision plus large sans étirer l'image.
+With the game in 4:3, the sides show the launcher artwork dimmed, the game's own image blurred (ambient), or black.	Avec le jeu en 4:3, les côtés montrent l'illustration du launcher assombrie, l'image du jeu floutée (ambiance) ou du noir.
+Scanlines: the horizontal lines of an old TV. CRT: also the tube's curvature, the colour mask and the vignette. It can be changed mid-game.	Lignes de balayage : les lignes horizontales d'une vieille télé. CRT : aussi la courbure du tube, le masque de couleurs et le vignettage. Modifiable en pleine partie.
+Smooths the image when scaling it to the window (No = sharp pixels).	Lisse l'image quand elle est agrandie à la fenêtre (Non = pixels nets).
+Also with F11 or Alt+Enter.	Aussi avec F11 ou Alt+Entrée.
+Volume of the game's sound.	Volume du son du jeu.
+Launcher music (menus and pause).	Musique du launcher (menus et pause).
+The European version runs at 50 Hz: slower and letterboxed. PeterDelta's patch makes it 60 Hz, like the US and Japanese ones (it raises the emulated CPU speed). Applied when the game starts.	La version européenne tourne à 50 Hz : plus lente et avec des bandes noires. Le patch de PeterDelta la passe à 60 Hz, comme les versions américaine et japonaise (il accélère le CPU émulé). Appliqué au lancement de la partie.
+Opens ACHIEVEMENTS: log in there (just once) to download your disc's achievements. The password is not stored.	Ouvre SUCCÈS : connectez-vous là (une seule fois) pour télécharger les succès de votre disque. Le mot de passe n'est pas conservé.
+Removes the downloaded set so you can download it again or use another account. The achievements you already earned are kept.	Supprime la liste téléchargée pour la télécharger à nouveau ou utiliser un autre compte. Les succès déjà obtenus sont conservés.
+Strength of the controller rumble in the game. When you change it, the controller rumbles briefly at the chosen strength.	Force de la vibration de la manette en jeu. En la modifiant, la manette vibre un instant à la force choisie.
+When you return to the menu or quit, the game is saved in the autosave slot (besides the three manual slots in the pause menu). CONTINUE loads the most recent one.	En revenant au menu ou en quittant, la partie est sauvegardée dans l'emplacement auto (en plus des trois emplacements manuels de la pause). CONTINUER charge la plus récente.
+Cutscene text (PeterDelta's patch removes it). Applied when the game starts.	Texte des cinématiques (le patch de PeterDelta le retire). Appliqué au lancement de la partie.
+Launcher sounds when moving, choosing and cancelling.	Sons du launcher pour se déplacer, choisir et annuler.
+Launcher button icons. Automatic switches depending on whether you use keyboard or controller.	Icônes des boutons du launcher. Automatique change selon que vous utilisez le clavier ou la manette.
+Keyboard, Xbox controller and PlayStation controller, with your bindings.	Clavier, manette Xbox et manette PlayStation, avec vos réglages.
+Changes which key maps to each button. Does not affect the controller.	Change la touche associée à chaque bouton. N'affecte pas la manette.
+Changes which controller button maps to each button. Does not affect the keyboard.	Change le bouton de la manette associé à chaque bouton. N'affecte pas le clavier.
+Goes back to the original keyboard and controller bindings (asks for confirmation).	Revient aux réglages d'origine du clavier et de la manette (demande confirmation).
+Graphics changes apply the next time you start the game.	Les changements graphiques s'appliquent au prochain lancement du jeu.
+OPTIONS  ·  CONTROLS	OPTIONS  ·  COMMANDES
+KEYBOARD	CLAVIER
+CONTROLLER	MANETTE
+Press a key	Appuyez sur une touche
+Press a button	Appuyez sur un bouton
+Restore defaults	Restaurer par défaut
+Press the new key. Esc cancels. The F keys and Esc are reserved.	Appuyez sur la nouvelle touche. Échap annule. Les touches F et Échap sont réservées.
+Press the new button on the controller. Esc or a click cancels.	Appuyez sur le nouveau bouton de la manette. Échap ou un clic annule.
+Choose a button and press Accept to change it. If another button already uses that key, they are swapped. The launcher menus are always driven with the arrows, Enter and Esc (or D-pad, A and B).	Choisissez un bouton et validez pour le changer. Si un autre bouton utilise déjà cette touche, ils sont échangés. Les menus du launcher se pilotent toujours avec les flèches, Entrée et Échap (ou la croix, A et B).
+\nNo controller connected.	\nAucune manette connectée.
+Change	Changer
+CHEATS	CODES
+No cheats active	Aucun code actif
+ cheat active	 code actif
+ cheats active	 codes actifs
+Achievements will be paused in the next game.	Les succès seront en pause lors de la prochaine partie.
+They apply when the game starts.	Ils s'appliquent au lancement de la partie.
+No cheats available for this disc.	Aucun code disponible pour ce disque.
+On	Activé
+Cheats from DuckStation's community database (chtdb).	Codes de la base de données communautaire de DuckStation (chtdb).
+Toggle	Activer / désactiver
+Metal Gear Solid launcher  ·  	Launcher de Metal Gear Solid  ·
+PROJECT	PROJET
+Launcher idea, direction, design and artwork	Idée, direction, conception et illustration du launcher
+Programming, in collaboration with daetrox	Programmation, en collaboration avec daetrox
+Original composition	Composition originale
+Music and sound effects, synthesised by the launcher itself	Musique et effets sonores, synthétisés par le launcher lui-même
+EMULATION	ÉMULATION
+PlayStation core for libretro, derived from DuckStation  ·  GPL-3.0	Cœur PlayStation pour libretro, dérivé de DuckStation  ·  GPL-3.0
+Connor McLaughlin (stenzek) and contributors	Connor McLaughlin (stenzek) et contributeurs
+Authors of DuckStation, the basis of SwanStation	Auteurs de DuckStation, la base de SwanStation
+Free BIOS from PCSX-Redux  ·  PCSX-Redux authors  ·  MIT	BIOS libre de PCSX-Redux  ·  auteurs de PCSX-Redux  ·  MIT
+Emulation core API  ·  libretro team	API des cœurs d'émulation  ·  équipe libretro
+Achievement platform and database	Plateforme et base de données de succès
+RetroAchievements achievement library  ·  MIT	Bibliothèque de succès de RetroAchievements  ·  MIT
+Achievement set for 	Succès de
+MENU BACKGROUND	FOND DU MENU
+Snowy base illustration	Illustration de la base enneigée
+GAME PATCHES	PATCHS DU JEU
+Native 16:9, NTSC mode (60 Hz) and subtitles  ·  DuckStation's chtdb database	16:9 natif, mode NTSC (60 Hz) et sous-titres  ·  base chtdb de DuckStation
+chtdb community (DuckStation)	Communauté chtdb (DuckStation)
+Metal Gear Solid cheat codes, by their respective authors	Codes de Metal Gear Solid, de leurs auteurs respectifs
+LIBRARIES	BIBLIOTHÈQUES
+Sam Lantinga and contributors  ·  zlib	Sam Lantinga et contributeurs  ·  zlib
+Sean Barrett  ·  public domain	Sean Barrett  ·  domaine public
+TYPEFACES	POLICES
+WITH RESPECT TO	AVEC RESPECT POUR
+Hideo Kojima, KCE Japan and Konami	Hideo Kojima, KCE Japan et Konami
+Creators of Metal Gear Solid (1998)	Créateurs de Metal Gear Solid (1998)
+Metal Gear Solid is a registered trademark of Konami Digital Entertainment.	Metal Gear Solid est une marque déposée de Konami Digital Entertainment.
+This project is not affiliated with them.	Ce projet n'est pas affilié à eux.
+Free software (GPL-3.0)  ·  non-profit	Logiciel libre (GPL-3.0)  ·  sans but lucratif
+RESET ACHIEVEMENTS	RÉINITIALISER LES SUCCÈS
+RESET	RÉINITIALISER
+Cancel	Annuler
+CONTROLS	COMMANDES
+Move	Se déplacer
+Launcher pause	Pause du launcher
+PS1 BUTTON	BOUTON PS1
+F8 swap disc  ·  F11 fullscreen  ·  hardcore mode: no F5 / F7	F8 changer de disque  ·  F11 plein écran  ·  mode hardcore : sans F5 / F7
+F5 save  ·  F7 load  ·  F8 swap disc  ·  F10 screenshot  ·  F11 fullscreen	F5 sauvegarder  ·  F7 charger  ·  F8 changer de disque  ·  F10 capture  ·  F11 plein écran
+SPOILER-FREE HELP	AIDE SANS SPOILERS
+Meryl's frequency	Fréquence de Meryl
+It's on the back of the game's case.	Elle est au dos de la boîte du jeu.
+[ Accept: reveal ]	[ Valider : afficher ]
+If he reads your mind, do what you did on the console: move the controller to port 2 from the pause menu (PAD: PORT 2) and switch back to 1 afterwards.	S'il lit dans vos pensées, faites comme sur la console : passez la manette sur le port 2 depuis la pause (MANETTE : PORT 2) puis revenez au 1 ensuite.
+Reveal frequency	Afficher la fréquence
+Hardcore mode  ·  	Mode hardcore  ·
+ of 	 sur
+ achievements (	 succès (
+ points	 points
+Locked	Verrouillé
+%m/%d/%Y	%d/%m/%Y
+Deletes the achievements unlocked on this computer (asks for confirmation).	Supprime les succès débloqués sur cet ordinateur (demande confirmation).
+Achievements unlock offline and are saved only on this computer.	Les succès se débloquent hors ligne et ne sont enregistrés que sur cet ordinateur.
+RetroAchievements account (retroachievements.org)	Compte RetroAchievements (retroachievements.org)
+Username	Nom d'utilisateur
+Password	Mot de passe
+DOWNLOAD	TÉLÉCHARGER
+Your password is only used to obtain an access token and is not stored.	Votre mot de passe sert seulement à obtenir un jeton d'accès et n'est pas conservé.
+Achievements are downloaded once; after that they are played and unlocked offline.	Les succès se téléchargent une fois ; ensuite, ils se jouent et se débloquent hors ligne.
+PAUSE	PAUSE
+Single disc	Disque unique
+PAD: PORT 2	MANETTE : PORT 2
+PAD: PORT 1	MANETTE : PORT 1
+RESUME	REPRENDRE
+SAVE	SAUVEGARDER
+LOAD	CHARGER
+SWAP DISC	CHANGER DE DISQUE
+MAIN MENU	MENU PRINCIPAL
+Achievements paused: cheats are active	Succès en pause : des codes sont actifs
+HARDCORE MODE  ·  	MODE HARDCORE  ·
+Achievements: 	Succès :
+HARDCORE MODE	MODE HARDCORE
+Resume	Reprendre
+ACHIEVEMENT UNLOCKED!	SUCCÈS DÉBLOQUÉ !
+CONNECTING	CONNEXION
+Shaders not found in 	Shaders introuvables dans
+Error compiling 	Erreur de compilation
+Error linking shader:\n	Erreur d'édition des liens du shader :\n
+Font not found: 	Police introuvable :
+Japan	Japon
+USA	États-Unis
+Europe	Europe
+Disc 	Disque 
+ inserted	 inséré
+ takes the previous binding of 	 reprend l'ancienne touche de 
+Slot 	Emplacement 
+  ·  Disc 	  ·  Disque 
+The unlocked achievement on this computer will be deleted. This cannot be undone.	Le succès débloqué sur cet ordinateur sera supprimé. C'est irréversible.
+The 	Les 
+ unlocked achievements on this computer will be deleted. This cannot be undone.	 succès débloqués sur cet ordinateur seront supprimés. C'est irréversible.
+No	Non
+DISCS & BIOS	DISQUES ET BIOS
+GRAPHICS	GRAPHISMES
+GAME	JEU
+SOUND	SON

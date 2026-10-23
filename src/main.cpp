@@ -450,7 +450,7 @@ const char* OptCategory(int i)
 {
   static const char* const es[kOptCategoryCount] = {"DISCOS Y BIOS", "GRÁFICOS", "JUEGO", "SONIDO", "CONTROLES", "TRUCOS"};
   static const char* const en[kOptCategoryCount] = {"DISCS & BIOS", "GRAPHICS", "GAME", "SOUND", "CONTROLS", "CHEATS"};
-  return LangEn() ? en[i] : es[i];
+  return L(es[i], en[i]);
 }
 // En el lugar del icono, el número de la categoría (como las fichas de un expediente).
 std::string OptCategoryNumber(int i) { return (i < 9 ? "0" : "") + std::to_string(i + 1); }
@@ -500,7 +500,7 @@ int OptRowIndex(int page, int row)
 std::string BiosLabel(const std::string& file)
 {
   static std::map<std::string, std::string> cache;
-  const std::string key = (LangEn() ? "en:" : "es:") + file;
+  const std::string key = std::to_string(static_cast<int>(I18n::Current())) + ":" + file;
   auto it = cache.find(key);
   if (it != cache.end())
     return it->second;
@@ -532,10 +532,10 @@ std::string BiosLabel(const std::string& file)
     for (const auto& [h, name] : known)
       if (std::strcmp(h, hex) == 0)
         label = std::string(name) + "  (" + file + ")";
-    if (LangEn())
-      for (const auto& [from, to] : {std::pair{"Japón", "Japan"}, std::pair{"EE. UU.", "USA"}, std::pair{"Europa", "Europe"}})
-        if (const size_t at = label.find(from); at != std::string::npos)
-          label.replace(at, std::strlen(from), to);
+    for (const auto& [from, to] : {std::pair{"Japón", L("Japón", "Japan")}, std::pair{"EE. UU.", L("EE. UU.", "USA")},
+                                   std::pair{"Europa", L("Europa", "Europe")}})
+      if (const size_t at = label.find(from); at != std::string::npos)
+        label.replace(at, std::strlen(from), to);
   }
   cache[key] = label;
   return label;
@@ -1141,7 +1141,7 @@ void App::SwapDisc()
   if (m_emu.SwapDisc(next))
   {
     m_audio.Play(Sfx::Select);
-    Toast(LangEn() ? "Disc " + std::to_string(next + 1) + " inserted" : "Disco " + std::to_string(next + 1) + " insertado");
+    Toast(L("Disco ", "Disc ") + std::to_string(next + 1) + L(" insertado", " inserted"));
   }
   else
   {
@@ -1156,9 +1156,9 @@ void App::StartGame(int slot)
   if (m_cfg.game_path.empty() || !Paths::FileExists(m_cfg.game_path))
   {
     ShowDialog(L("No hay ninguna imagen de disco seleccionada.\n\nCópiala en la carpeta game/ del launcher,\n"
-                 "elígela en OPCIONES · ISO y BIOS,\no arrástrala sobre la ventana.",
+                 "elígela en OPCIONES · DISCOS Y BIOS,\no arrástrala sobre la ventana.",
                  "No disc image selected.\n\nCopy it into the launcher's game/ folder,\n"
-                 "choose it in OPTIONS · ISO & BIOS,\nor drag it onto the window."));
+                 "choose it in OPTIONS · DISCS & BIOS,\nor drag it onto the window."));
     return;
   }
 
@@ -1166,9 +1166,9 @@ void App::StartGame(int slot)
   if (m_cfg.hardcore && !HasSonyBios())
   {
     ShowDialog(L("El modo hardcore funciona sólo con la BIOS original de tu PlayStation.\n\nCárgala en OPCIONES · "
-                 "ISO y BIOS, o desactiva allí el modo hardcore.",
+                 "DISCOS Y BIOS, o desactiva el modo hardcore en OPCIONES · JUEGO.",
                  "Hardcore mode only works with your PlayStation's original BIOS.\n\nLoad it in OPTIONS · "
-                 "ISO & BIOS, or turn hardcore mode off there."));
+                 "DISCS & BIOS, or turn hardcore mode off in OPTIONS · GAME."));
     return;
   }
   m_hardcore_session = m_cfg.hardcore;
@@ -1895,8 +1895,8 @@ void App::AssignBinding(int retro_id, int value)
     if (i != retro_id && table[i] == value)
     {
       table[i] = old;
-      Toast(LangEn() ? std::string(PsButtonName(i)) + " takes the previous binding of " + PsButtonName(retro_id)
-                     : std::string(PsButtonName(i)) + " pasa a la asignación anterior de " + PsButtonName(retro_id));
+      Toast(std::string(PsButtonName(i)) + L(" pasa a la asignación anterior de ", " takes the previous binding of ") +
+            PsButtonName(retro_id));
     }
   table[retro_id] = value;
   m_cfg.Save();
@@ -2951,7 +2951,7 @@ void App::RenderTitleBar()
 void App::SetLanguage(Lang lang)
 {
   I18n::Current() = lang;
-  m_cfg.language = lang == Lang::En ? "en" : "es";
+  m_cfg.language = lang == Lang::En ? "en" : lang == Lang::Fr ? "fr" : "es";
   m_cfg.Save();
 }
 
@@ -2972,6 +2972,13 @@ void App::DrawFlag(Lang lang, float x, float y, float w, float h, float alpha)
     rect(0.22f, 0.36f, 0.13f, 0.08f, {0.9f, 0.62f, 0.12f, 1});
     rect(0.17f, 0.38f, 0.035f, 0.26f, {0.62f, 0.6f, 0.58f, 1});
     rect(0.375f, 0.38f, 0.035f, 0.26f, {0.62f, 0.6f, 0.58f, 1});
+  }
+  else if (lang == Lang::Fr)
+  {
+    // Azul, blanco y rojo en vertical.
+    rect(0, 0, 1 / 3.0f, 1, {0.0f, 0.14f, 0.58f, 1});
+    rect(1 / 3.0f, 0, 1 / 3.0f, 1, {0.96f, 0.95f, 0.93f, 1});
+    rect(2 / 3.0f, 0, 1 / 3.0f, 1, {0.93f, 0.16f, 0.22f, 1});
   }
   else
   {
@@ -3038,11 +3045,11 @@ void App::RenderLanguage()
   }
   // Menú: una fila por idioma, con su bandera y su nombre en ese idioma.
   const float mw = IS(230), rh = IS(52);
-  m_lang_menu = {std::min(b.x + b.w, static_cast<float>(m_w)) - mw, b.y + b.h + IS(4), mw, rh * 2 + IS(12)};
+  m_lang_menu = {std::min(b.x + b.w, static_cast<float>(m_w)) - mw, b.y + b.h + IS(4), mw, rh * 3 + IS(12)};
   const Rect& m = m_lang_menu;
   m_r.Rect(m.x, m.y, m.w, m.h, UiMode::Panel, WithAlpha(kPanelBg, 1.05f), WithAlpha(kSilver, 0.9f));
-  const std::pair<Lang, const char*> langs[2] = {{Lang::Es, "Español"}, {Lang::En, "English"}};
-  for (int i = 0; i < 2; i++)
+  const std::pair<Lang, const char*> langs[3] = {{Lang::Es, "Español"}, {Lang::En, "English"}, {Lang::Fr, "Français"}};
+  for (int i = 0; i < 3; i++)
   {
     const Rect row = {m.x + IS(6), m.y + IS(6) + i * rh, m.w - IS(12), rh};
     const bool current = langs[i].first == I18n::Current();
@@ -3200,7 +3207,7 @@ std::string App::SlotName(int slot) const
 {
   if (slot == 0)
     return L("Autoguardado", "Autosave");
-  return (LangEn() ? "Slot " : "Ranura ") + std::to_string(slot);
+  return L("Ranura ", "Slot ") + std::to_string(slot);
 }
 
 std::string App::SlotDate(int slot) const
@@ -3216,7 +3223,7 @@ std::string App::SlotDate(int slot) const
     std::strftime(date, sizeof(date), L("%d/%m/%Y  %H:%M", "%m/%d/%Y  %H:%M"), std::localtime(&t));
     text = date;
   }
-  return text + (LangEn() ? "  ·  Disc " : "  ·  Disco ") + std::to_string(s.disc + 1);
+  return text + L("  ·  Disco ", "  ·  Disc ") + std::to_string(s.disc + 1);
 }
 
 // Relee qué ranuras hay, con su fecha, disco y miniatura (sólo recarga las miniaturas que cambian).
@@ -3472,7 +3479,7 @@ void App::RenderOptions()
   m_r.TextCentered(m_r.display, OptCategoryNumber(m_opt_page), IX(px + pw - 90), IY(py + 70), IS(84),
                    {1, 1, 1, 0.14f});
 
-  auto yesno = [](bool b) { return std::string(b ? L("Sí", "Yes") : "No"); };
+  auto yesno = [](bool b) { return std::string(b ? L("Sí", "Yes") : L("No", "No")); };
   const bool hw = m_cfg.hardware_renderer;
 
   struct Row
@@ -3501,7 +3508,7 @@ void App::RenderOptions()
       case OPT_FASTBOOT: return {L("Arranque rápido", "Fast boot"), yesno(m_cfg.fast_boot), true, true};
       case OPT_HARDCORE:
         return {L("Modo hardcore", "Hardcore mode"),
-                m_cfg.hardcore ? (HasSonyBios() ? L("Sí", "Yes") : L("Sí (falta la BIOS original)", "Yes (original BIOS missing)")) : "No", true, true};
+                m_cfg.hardcore ? (HasSonyBios() ? L("Sí", "Yes") : L("Sí (falta la BIOS original)", "Yes (original BIOS missing)")) : L("No", "No"), true, true};
       case OPT_RENDERER: return {L("Renderizador", "Renderer"), hw ? L("OpenGL (mejorado)", "OpenGL (enhanced)") : L("Software (preciso)", "Software (accurate)"), true, true};
       case OPT_SCALE: return {L("Resolución interna", "Internal resolution"), std::to_string(m_cfg.resolution_scale) + "x", hw, true};
       case OPT_TEXFILTER:
@@ -3512,7 +3519,7 @@ void App::RenderOptions()
         return {L("Filtro de texturas", "Texture filter"), tf, hw, true};
       }
       case OPT_PGXP:
-        return {L("Corregir geometría (PGXP)", "Fix geometry (PGXP)"), !m_cfg.pgxp ? "No" : m_cfg.pgxp_cpu ? L("Máxima", "Maximum") : L("Sí", "Yes"), hw, true};
+        return {L("Corregir geometría (PGXP)", "Fix geometry (PGXP)"), !m_cfg.pgxp ? L("No", "No") : m_cfg.pgxp_cpu ? L("Máxima", "Maximum") : L("Sí", "Yes"), hw, true};
       case OPT_WIDESCREEN:
         return {L("Aspecto de la pantalla", "Aspect ratio"),
                 m_ws_available ? (m_cfg.widescreen ? L("16:9 (panorámica)", "16:9 (widescreen)") : "4:3") : L("4:3 (16:9 no disponible para este disco)", "4:3 (16:9 not available for this disc)"),
@@ -3924,7 +3931,7 @@ void App::RenderCheats()
       m_r.Sprite(m_row_sel, rr.x - IS(10), rr.y - IS(7), rr.w + IS(20), rr.h + IS(14), {1, 1, 1, 0.95f});
     const Color lc = sel ? kInk : on ? kWhite : Color{0.8f, 0.8f, 0.8f, 1};
     FitText(m_r.ui, c.Label(), rr.x + IS(30), rr.y + IS(8), rr.w - IS(200), IS(27), lc, Align::Left, sel, 30000 + i);
-    m_r.Text(m_r.ui, on ? L("Activado", "On") : "No", rr.x + rr.w - IS(26), rr.y + IS(9), IS(25),
+    m_r.Text(m_r.ui, on ? L("Activado", "On") : L("No", "No"), rr.x + rr.w - IS(26), rr.y + IS(9), IS(25),
              sel ? kInk : on ? kGold : Color{0.6f, 0.6f, 0.6f, 1}, Align::Right);
     Hot(rr, 8, i, [this, i](float, float) {
       m_cheat_sel = i;
@@ -4061,11 +4068,11 @@ void App::RenderConfirmReset()
   m_r.Text(m_r.brush, L("REINICIAR LOGROS", "RESET ACHIEVEMENTS"), IX(x + 44), IY(y + 24), IS(44), kWhite);
   const int n = m_ach.EarnedCount();
   const std::string msg =
-    LangEn() ? (n == 1 ? std::string("The unlocked achievement") : "The " + std::to_string(n) + " unlocked achievements") +
-                 " on this computer will be deleted. This cannot be undone."
-             : (n == 1 ? std::string("Se borrará el logro desbloqueado")
-                       : "Se borrarán los " + std::to_string(n) + " logros desbloqueados") +
-                 " en este equipo. No se puede deshacer.";
+    n == 1 ? std::string(L("Se borrará el logro desbloqueado en este equipo. No se puede deshacer.",
+                           "The unlocked achievement on this computer will be deleted. This cannot be undone."))
+           : L("Se borrarán los ", "The ") + std::to_string(n) +
+               L(" logros desbloqueados en este equipo. No se puede deshacer.",
+                 " unlocked achievements on this computer will be deleted. This cannot be undone.");
   float ty = y + 96;
   for (const std::string& line : Wrap(m_r.ui, msg, IS(25), IS(w - 90)))
   {
@@ -4351,7 +4358,7 @@ void App::RenderPause()
   Panel(px, py, pw, ph);
   m_r.Text(m_r.brush, L("PAUSA", "PAUSE"), IX(px + 44), IY(py + 26), IS(54), kWhite);
   const int discs = m_emu.DiscCount();
-  const std::string disc = discs >= 2 ? (LangEn() ? "Disc " : "Disco ") + std::to_string(m_emu.CurrentDisc() + 1) + " / 2"
+  const std::string disc = discs >= 2 ? L("Disco ", "Disc ") + std::to_string(m_emu.CurrentDisc() + 1) + " / 2"
                                       : std::string(L("Un solo disco", "Single disc"));
   m_r.Text(m_r.ui, disc, IX(px + pw - 44), IY(py + 44), IS(24), kDim, Align::Right);
   const std::string port = m_emu.InputPort() == 1 ? L("MANDO: PUERTO 2", "PAD: PORT 2") : L("MANDO: PUERTO 1", "PAD: PORT 1");
@@ -4481,20 +4488,20 @@ int App::Run(int argc, char** argv)
   m_cfg.Load();
   // Idioma: el elegido en el selector o, si no se ha elegido nunca, el del sistema.
   {
-    bool en = m_cfg.language == "en";
-    if (m_cfg.language.empty())
+    std::string code = m_cfg.language;
+    if (code.empty())
     {
-      en = true;
+      code = "en";
       if (SDL_Locale* locales = SDL_GetPreferredLocales())
       {
         if (locales[0].language)
-          en = std::strcmp(locales[0].language, "es") != 0;
+          code = locales[0].language;
         SDL_free(locales);
       }
     }
-    if (const char* test = std::getenv("SILVER_TEST_LANG")) // pruebas: "es" o "en"
-      en = std::strcmp(test, "en") == 0;
-    I18n::Current() = en ? Lang::En : Lang::Es;
+    if (const char* test = std::getenv("SILVER_TEST_LANG")) // pruebas: "es", "en" o "fr"
+      code = test;
+    I18n::Current() = code == "es" ? Lang::Es : code == "fr" ? Lang::Fr : Lang::En;
   }
   if (m_cfg.game_path.empty() || !Paths::FileExists(m_cfg.game_path))
   {
