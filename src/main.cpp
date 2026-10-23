@@ -82,8 +82,8 @@ float Smooth(float a, float b, float x)
 }
 
 // Duraciones de las animaciones de apertura y cierre (segundos).
-constexpr float kIntroLen = 2.5f;
-constexpr float kOutroLen = 1.25f;
+constexpr float kIntroLen = 3.0f;
+constexpr float kOutroLen = 1.6f;
 
 std::string BaseName(const std::string& path)
 {
@@ -3010,7 +3010,7 @@ void App::DrawFlag(Lang lang, float x, float y, float w, float h, float alpha)
 void App::RenderLanguage()
 {
   const bool fullscreen = SDL_GetWindowFlags(m_window) & SDL_WINDOW_FULLSCREEN;
-  const float alpha = Smooth(2.0f, 2.4f, m_intro_t) * (m_outro_t >= 0 ? 1.0f - Smooth(0.05f, 0.4f, m_outro_t) : 1.0f);
+  const float alpha = Smooth(2.5f, 2.9f, m_intro_t) * (m_outro_t >= 0 ? 1.0f - Smooth(0.05f, 0.4f, m_outro_t) : 1.0f);
   if (alpha <= 0.001f)
   {
     m_tb_lang = m_lang_menu = {};
@@ -3069,32 +3069,90 @@ void App::RenderLanguage()
   }
 }
 
-// Capa de transición: el «!» de alerta en un círculo de tinta y barrido de tinta (apertura y cierre).
+// Apertura y cierre con el códec. Al abrir: llamada entrante (la frecuencia se sintoniza en la 140.85,
+// parpadea «CALL · PUSH SELECT» como en el juego) y la pantalla se abre hacia el menú. Al cerrar: fin de la
+// transmisión, la señal se pierde entre interferencias y la imagen se apaga como una tele de tubo.
 void App::RenderTransition()
 {
-  float wipe = 1.0f; // 1 = nada tapado, 0 = todo negro
-  float kanji_a = 0, kanji_s = 1;
+  const float W = static_cast<float>(m_w), H = static_cast<float>(m_h);
+  auto black = [&](float a) {
+    if (a > 0.001f)
+      m_r.Rect(0, 0, W, H, UiMode::Solid, {0, 0, 0, a});
+  };
+  // Pantalla del códec centrada; `open` (0..1) la despliega en vertical y `tune` sintoniza la frecuencia.
+  auto codec = [&](float alpha, float open, float tune, bool call, float noise, const char* status) {
+    if (alpha <= 0.001f || open <= 0.001f)
+      return;
+    const float w = IS(620), fullh = IS(330), h = std::max(IS(4), fullh * open);
+    const float x = (W - w) / 2, y = (H - h) / 2;
+    CodecBox(x, y, w, h, alpha);
+    if (open < 0.85f)
+      return;
+    const float top = (H - fullh) / 2;
+    char freq[16];
+    std::snprintf(freq, sizeof(freq), "%.2f", 140.85 - (1.0 - tune) * 3.1 + (tune < 1 ? 0.04 * std::sin(m_time * 50.0) : 0.0));
+    m_r.Text(m_r.mono, "PTT", x + IS(26), top + IS(20), IS(24), WithAlpha(kCodec, 0.7f * alpha));
+    m_r.Text(m_r.mono, "MEMORY", x + w - IS(26), top + IS(20), IS(24), WithAlpha(kCodec, 0.7f * alpha), Align::Right);
+    m_r.Text(m_r.mono, freq, W / 2, top + IS(62), IS(112), WithAlpha(kCodec, alpha), Align::Center);
+    // Barras de señal (se vacían con las interferencias).
+    for (int i = 0; i < 10; i++)
+    {
+      const float on = Clamp01(tune * 10 - i) * (1.0f - noise);
+      const float bh = IS(8 + i * 3.5f);
+      m_r.Rect(x + IS(60) + i * IS(18), top + fullh - IS(52) - bh, IS(12), bh, UiMode::Solid,
+               WithAlpha(kCodec, (0.18f + 0.82f * on) * alpha));
+    }
+    if (call && std::fmod(m_time, 0.6f) < 0.38f)
+    {
+      // «CALL» en rojo sobre «PUSH SELECT», como el aviso de llamada del juego.
+      const float cw = IS(150), chh = IS(40), cx = x + w - IS(40) - cw, cy = top + fullh - IS(108);
+      m_r.Rect(cx, cy, cw, chh, UiMode::Solid, {0.85f, 0.08f, 0.06f, alpha});
+      m_r.Text(m_r.brush, "CALL", cx + cw / 2, cy + IS(4), IS(30), WithAlpha(kInk, alpha), Align::Center);
+      m_r.Text(m_r.mono, "PUSH SELECT", cx + cw / 2, cy + chh + IS(6), IS(22), WithAlpha(kCodecText, alpha), Align::Center);
+    }
+    if (status)
+      m_r.Text(m_r.mono, status, x + w - IS(40), top + fullh - IS(64), IS(24), WithAlpha(kCodecText, alpha), Align::Right);
+    // Interferencias: líneas claras al azar dentro de la pantalla.
+    if (noise > 0.01f)
+    {
+      uint32_t seed = static_cast<uint32_t>(m_time * 60.0f) * 2654435761u;
+      for (int i = 0; i < 70; i++)
+      {
+        seed = seed * 1664525u + 1013904223u;
+        const float ly = top + (seed >> 8) % static_cast<uint32_t>(std::max(1.0f, fullh));
+        seed = seed * 1664525u + 1013904223u;
+        const float lx = x + (seed >> 8) % static_cast<uint32_t>(std::max(1.0f, w * 0.8f));
+        const float lw = w * (0.05f + 0.25f * ((seed >> 4) & 0xFF) / 255.0f);
+        m_r.Rect(lx, ly, std::min(lw, x + w - lx), IS(2), UiMode::Solid, {0.8f, 1.0f, 0.85f, 0.5f * noise * alpha});
+      }
+    }
+  };
+
   if (IntroActive())
   {
-    wipe = EaseInOut((m_intro_t - 0.75f) / 0.75f);
-    kanji_a = Smooth(0.05f, 0.4f, m_intro_t) * (1.0f - Smooth(0.85f, 1.25f, m_intro_t));
-    kanji_s = 1.25f - 0.25f * EaseOut(m_intro_t / 0.6f);
+    const float T = m_intro_t;
+    black(1.0f - Smooth(1.9f, 2.5f, T));
+    const float open = EaseOut((T - 0.15f) / 0.35f) * (1.0f - EaseInOut((T - 1.7f) / 0.35f));
+    codec(1.0f - Smooth(2.0f, 2.3f, T), open, Clamp01((T - 0.4f) / 0.7f), T > 1.1f, 0, nullptr);
   }
   else if (m_outro_t >= 0)
   {
-    wipe = 1.0f - EaseInOut((m_outro_t - 0.2f) / 0.55f);
-    kanji_a = Smooth(0.55f, 0.8f, m_outro_t) * (1.0f - Smooth(1.0f, 1.2f, m_outro_t));
-    kanji_s = 1.0f + 0.15f * Smooth(0.55f, 1.2f, m_outro_t);
-  }
-  if (wipe < 0.999f)
-    m_r.Rect(0, 0, static_cast<float>(m_w), static_cast<float>(m_h), UiMode::InkWipe, {0, 0, 0, 1}, {}, wipe);
-  if (kanji_a > 0.001f)
-  {
-    const float cx = m_w / 2.0f, cy = m_h / 2.0f;
-    const float size = std::min(m_w, m_h) * 0.28f * kanji_s;
-    m_r.Rect(cx - size * 0.95f, cy - size * 0.95f, size * 1.9f, size * 1.9f, UiMode::Enso,
-             {0.82f, 0.82f, 0.84f, 0.8f * kanji_a});
-    m_r.TextCentered(m_r.display, "!", cx, cy, size * 1.3f, WithAlpha(kRed, kanji_a));
+    const float O = m_outro_t;
+    black(Smooth(0.0f, 0.3f, O) * 0.85f + Smooth(0.75f, 0.8f, O) * 0.15f);
+    if (O < 0.8f)
+    {
+      const float open = EaseOut(O / 0.2f) * (1.0f - EaseInOut((O - 0.62f) / 0.18f));
+      codec(1.0f, open, 1.0f, false, Smooth(0.25f, 0.6f, O), L("FIN DE TRANSMISIÓN", "END OF TRANSMISSION"));
+    }
+    else
+    {
+      // Tele de tubo apagándose: una línea que se encoge hasta un punto y se desvanece.
+      const float t = Clamp01((O - 0.8f) / 0.6f);
+      const float lw = W * (1.0f - EaseInOut(t * 1.4f)) + IS(6), lh = IS(3) + IS(10) * (1.0f - t);
+      const float a = 1.0f - Smooth(0.75f, 1.0f, t);
+      m_r.Rect((W - lw) / 2, (H - lh) / 2, lw, lh, UiMode::Solid, {0.85f, 1.0f, 0.9f, a});
+      m_r.Rect((W - lw * 0.6f) / 2, (H - lh * 4) / 2, lw * 0.6f, lh * 4, UiMode::Solid, {0.45f, 1.0f, 0.62f, 0.18f * a});
+    }
   }
 }
 
@@ -3103,7 +3161,7 @@ void App::RenderMenu()
   // Animación de apertura/cierre: factores de aparición de cada elemento.
   const float T = m_intro_t, O = m_outro_t;
   const float out_fade = O >= 0 ? 1.0f - Smooth(0.05f, 0.4f, O) : 1.0f;
-  const float info_a = Smooth(2.0f, 2.4f, T) * out_fade;
+  const float info_a = Smooth(2.5f, 2.9f, T) * out_fade;
 
   // Los botones van pintados en la ilustración, bajo el logotipo: se dibujan con la misma escala y
   // posición que el fondo (que se ancla a la derecha) para que coincidan con el arte.
@@ -3123,7 +3181,7 @@ void App::RenderMenu()
     m_r.TextWidth(m_r.brush, labels[MENU_ACHIEVEMENTS], IS(kFont)) <= IS(ach_slot.w * (1 - kBandTextX) - 78 - 80);
   for (int i = 0; i < kMenuItems; i++)
   {
-    float e = EaseOut((T - 1.35f - i * 0.09f) / 0.38f);
+    float e = EaseOut((T - 2.05f - i * 0.09f) / 0.38f);
     if (O >= 0)
       e *= 1.0f - EaseInOut((O - i * 0.05f) / 0.3f);
     const float sel = m_modal == Modal::None ? m_sel_anim[i] : 0.0f;
