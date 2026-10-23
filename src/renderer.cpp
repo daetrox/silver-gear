@@ -352,18 +352,20 @@ void Renderer::DrawIcon(Icon icon, float x, float y, float size, Color c, float 
 }
 
 void Renderer::Image(GLuint tex, float x, float y, float w, float h, float u0, float v0, float u1, float v1,
-                     bool smooth)
+                     bool smooth, int filter, float lines)
 {
   SetCommonUniforms(m_ui_prog);
   glUniform1i(glGetUniformLocation(m_ui_prog, "uMode"), static_cast<int>(UiMode::Image));
   glUniform4f(glGetUniformLocation(m_ui_prog, "uColor"), 1, 1, 1, 1);
   glUniform4f(glGetUniformLocation(m_ui_prog, "uRect"), x, y, w, h);
+  glUniform4f(glGetUniformLocation(m_ui_prog, "uUV"), u0, v0, u1, v1);
+  glUniform4f(glGetUniformLocation(m_ui_prog, "uParam"), static_cast<float>(filter), lines, 0, 0);
   glUniform1i(glGetUniformLocation(m_ui_prog, "uTex"), 0);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, tex);
-  const GLint filter = smooth ? GL_LINEAR : GL_NEAREST;
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+  const GLint tf = smooth || filter == 3 ? GL_LINEAR : GL_NEAREST;
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, tf);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, tf);
   m_scratch.clear();
   PushQuad(m_scratch, x, y, x + w, y + h, u0, v0, u1, v1);
   Flush(m_scratch);

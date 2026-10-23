@@ -401,6 +401,7 @@ enum OptRow
   OPT_PGXP,
   OPT_WIDESCREEN,
   OPT_SIDEART,
+  OPT_SCREENFILTER,
   OPT_SMOOTH,
   OPT_FULLSCREEN,
   OPT_VOLUME,
@@ -472,8 +473,8 @@ const std::vector<int>& OptPageRows(int page)
 {
   static const std::vector<int> pages[kOptCategoryCount] = {
     {OPT_GAME, OPT_DISC2, OPT_BIOS, OPT_BIOS_LOAD, OPT_FASTBOOT, OPT_BACK},
-    {OPT_RENDERER, OPT_SCALE, OPT_TEXFILTER, OPT_PGXP, OPT_WIDESCREEN, OPT_SIDEART, OPT_SMOOTH, OPT_FULLSCREEN,
-     OPT_BACK},
+    {OPT_RENDERER, OPT_SCALE, OPT_TEXFILTER, OPT_PGXP, OPT_WIDESCREEN, OPT_SCREENFILTER, OPT_SIDEART, OPT_SMOOTH,
+     OPT_FULLSCREEN, OPT_BACK},
     {OPT_NTSC, OPT_SUBTITLES, OPT_AUTOSAVE, OPT_HARDCORE, OPT_BACK},
     {OPT_VOLUME, OPT_MUSIC, OPT_SFX, OPT_BACK},
     {OPT_PROMPTS, OPT_REMAP_KB, OPT_REMAP_PAD, OPT_RESET_CONTROLS, OPT_CONTROLS, OPT_BACK},
@@ -672,6 +673,10 @@ private:
   void RenderLoading(float t, float alpha);
   float m_load_t = -1; // >= 0 durante la pantalla de carga de la partida
   bool m_hint_reveal = false; // ayuda de CONTROLES: frecuencia de Meryl a la vista
+  // Aviso de rendimiento: frames emulados frente a los que tocaban, en ventanas de 5 s de juego.
+  float m_speed_t = 0, m_play_t = 0;
+  uint64_t m_speed_frames = 0;
+  bool m_speed_warned = false;
   SlotInfo m_slots[kSlots];
   int m_slot_sel = 1, m_slot_last = 1; // ranura elegida en el selector y la última usada (F5/F7)
   bool m_slots_save = false;           // el selector guarda (o carga)
@@ -1238,6 +1243,8 @@ void App::StartGame(int slot)
   m_screen = Screen::Game;
   m_paused = false;
   m_pause_sel = 0;
+  m_play_t = 0;
+  m_speed_warned = false;
   m_mouse_idle = 0;
 }
 
@@ -1489,7 +1496,8 @@ void App::OptionChange(int row, int dir)
         return;
       m_cfg.widescreen = !m_cfg.widescreen;
       break;
-    case OPT_SIDEART: m_cfg.side_art = !m_cfg.side_art; break;
+    case OPT_SIDEART: m_cfg.side_mode = (m_cfg.side_mode + (dir < 0 ? 2 : 1)) % 3; break;
+    case OPT_SCREENFILTER: m_cfg.screen_filter = (m_cfg.screen_filter + (dir < 0 ? 2 : 1)) % 3; break;
     case OPT_SMOOTH: m_cfg.smooth_filter = !m_cfg.smooth_filter; break;
     case OPT_FULLSCREEN: ToggleFullscreen(); return;
     case OPT_VOLUME:
@@ -2435,6 +2443,29 @@ void App::Update(float dt)
     m_load_t += dt;
     if (m_load_t > 2.5f || m_screen != Screen::Game)
       m_load_t = -1;
+  }
+  // Si la emulación no llega a la velocidad real, se avisa una vez por partida.
+  if (m_emu.IsRunning() && m_screen == Screen::Game && !m_paused && m_modal == Modal::None)
+  {
+    m_speed_t += dt;
+    m_play_t += dt;
+    if (m_speed_t >= 5.0f)
+    {
+      const double ran = static_cast<double>(m_emu.FramesRun() - m_speed_frames);
+      if (m_play_t > 12.0f && !m_speed_warned && ran < m_emu.TargetFps() * m_speed_t * 0.9)
+      {
+        m_speed_warned = true;
+        Toast(L("El juego va lento: baja la resolución interna en OPCIONES › GRÁFICOS",
+                "The game is running slow: lower the internal resolution in OPTIONS › GRAPHICS"));
+      }
+      m_speed_t = 0;
+      m_speed_frames = m_emu.FramesRun();
+    }
+  }
+  else
+  {
+    m_speed_t = 0;
+    m_speed_frames = m_emu.FramesRun();
   }
   if (m_screen == Screen::Game)
   {
@@ -3420,7 +3451,14 @@ void App::RenderOptions()
         return {L("Aspecto de la pantalla", "Aspect ratio"),
                 m_ws_available ? (m_cfg.widescreen ? L("16:9 (panorámica)", "16:9 (widescreen)") : "4:3") : L("4:3 (16:9 no disponible para este disco)", "4:3 (16:9 not available for this disc)"),
                 m_ws_available, m_ws_available};
-      case OPT_SIDEART: return {L("Bordes laterales", "Side borders"), m_cfg.side_art ? L("Ilustración", "Artwork") : L("Negro", "Black"), true, true};
+      case OPT_SIDEART:
+        return {L("Bordes laterales", "Side borders"),
+                m_cfg.side_mode == 2 ? L("Ambiente (el juego)", "Ambient (the game)") : m_cfg.side_mode == 1 ? L("Ilustración", "Artwork") : L("Negro", "Black"),
+                true, true};
+      case OPT_SCREENFILTER:
+        return {L("Filtro de pantalla", "Screen filter"),
+                m_cfg.screen_filter == 2 ? L("CRT (tele de tubo)", "CRT (tube TV)") : m_cfg.screen_filter == 1 ? L("Líneas de barrido", "Scanlines") : L("Ninguno", "None"),
+                true, true};
       case OPT_SMOOTH: return {L("Suavizar imagen", "Smooth image"), yesno(m_cfg.smooth_filter), true, true};
       case OPT_FULLSCREEN: return {L("Pantalla completa", "Fullscreen"), yesno(m_cfg.fullscreen), true, true};
       case OPT_VOLUME: return {L("Volumen del juego", "Game volume"), std::to_string(m_cfg.volume) + "%", true, true};
@@ -3569,7 +3607,18 @@ void App::RenderOptions()
                "4:3 is the original format. 16:9 uses a patch of the game itself (PeterDelta): a wider field of view "
                "without stretching the image.");
       break;
-    case OPT_SIDEART: help = L("Con el juego en 4:3, los lados muestran la ilustración del launcher oscurecida o negro.", "With the game in 4:3, the sides show the launcher artwork dimmed, or black."); break;
+    case OPT_SIDEART:
+      help = L("Con el juego en 4:3, los lados muestran la ilustración del launcher oscurecida, la propia imagen del "
+               "juego desenfocada (ambiente) o negro.",
+               "With the game in 4:3, the sides show the launcher artwork dimmed, the game's own image blurred "
+               "(ambient), or black.");
+      break;
+    case OPT_SCREENFILTER:
+      help = L("Líneas de barrido: las líneas horizontales de una tele antigua. CRT: además, la curvatura del tubo, la "
+               "máscara de colores y la viñeta. Se puede cambiar en plena partida.",
+               "Scanlines: the horizontal lines of an old TV. CRT: also the tube's curvature, the colour mask and "
+               "the vignette. It can be changed mid-game.");
+      break;
     case OPT_SMOOTH: help = L("Suaviza la imagen al escalarla a la ventana (No = píxeles nítidos).", "Smooths the image when scaling it to the window (No = sharp pixels)."); break;
     case OPT_FULLSCREEN: help = L("También con F11 o Alt+Enter.", "Also with F11 or Alt+Enter."); break;
     case OPT_VOLUME: help = L("Volumen del sonido del juego.", "Volume of the game's sound."); break;
@@ -4157,9 +4206,18 @@ void App::RenderGame()
     w = h * aspect;
   }
   const float x = (m_w - w) / 2, y = (m_h - h) / 2;
-  // Laterales: la ilustración del launcher desenfocada y muy oscurecida, en lugar de franjas negras.
-  // A la izquierda, Snake; a la derecha, la misma ilustración reflejada (así no asoma el logotipo).
-  if (m_cfg.side_art && x > 2.0f)
+  const float u1 = static_cast<float>(m_emu.FrameWidth()) / m_emu.TextureWidth();
+  const float v1 = static_cast<float>(m_emu.FrameHeight()) / m_emu.TextureHeight();
+  const float tv0 = m_emu.FlippedY() ? v1 : 0, tv1 = m_emu.FlippedY() ? 0 : v1;
+  // Laterales (juego en 4:3 en una pantalla más ancha), en lugar de franjas negras:
+  //   ilustración: la del launcher desenfocada y oscura; a la derecha, reflejada (sin el rótulo);
+  //   ambiente: la propia imagen del juego, ampliada, desenfocada y oscura.
+  if (m_cfg.side_mode == 2 && x > 2.0f)
+  {
+    const float cw = static_cast<float>(m_w), ch = cw / aspect;
+    m_r.Image(m_emu.Texture(), 0, (m_h - ch) / 2, cw, ch, 0, tv0, u1, tv1, true, 3);
+  }
+  if (m_cfg.side_mode == 1 && x > 2.0f)
   {
     const float aw = m_h * kArtW / kArtH;
     m_r.SetClip(0, 0, x, static_cast<float>(m_h));
@@ -4173,12 +4231,11 @@ void App::RenderGame()
     m_r.Rect(x - sw, 0, sw, static_cast<float>(m_h), UiMode::Solid, {0, 0, 0, 0.5f});
     m_r.Rect(x + w, 0, sw, static_cast<float>(m_h), UiMode::Solid, {0, 0, 0, 0.5f});
   }
-  const float u1 = static_cast<float>(m_emu.FrameWidth()) / m_emu.TextureWidth();
-  const float v1 = static_cast<float>(m_emu.FrameHeight()) / m_emu.TextureHeight();
-  if (m_emu.FlippedY())
-    m_r.Image(m_emu.Texture(), x, y, w, h, 0, v1, u1, 0, m_cfg.smooth_filter);
-  else
-    m_r.Image(m_emu.Texture(), x, y, w, h, 0, 0, u1, v1, m_cfg.smooth_filter);
+  // Líneas de la imagen original (sin la escala interna), para el filtro de líneas de barrido.
+  const int scale = m_cfg.hardware_renderer ? std::max(1, m_cfg.resolution_scale) : 1;
+  const float lines = std::max(120.0f, static_cast<float>(m_emu.FrameHeight()) / scale);
+  m_r.Image(m_emu.Texture(), x, y, w, h, 0, tv0, u1, tv1, m_cfg.smooth_filter || m_cfg.screen_filter == 2,
+            m_cfg.screen_filter, lines);
 
 }
 

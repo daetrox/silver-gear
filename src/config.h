@@ -29,7 +29,8 @@ struct Config
   bool pgxp = true;              // corrige el "temblor" de polígonos
   bool pgxp_cpu = true;          // PGXP también para la geometría que el juego calcula con la CPU
   bool widescreen = false;       // 16:9 mediante parche del propio juego (si existe para el disco)
-  bool side_art = true;          // rellenar los laterales (4:3 en pantalla ancha) con la ilustración
+  int side_mode = 1;             // laterales con el juego en 4:3: 0 negro, 1 ilustración, 2 ambiente
+  int screen_filter = 0;         // filtro de la imagen del juego: 0 ninguno, 1 líneas de barrido, 2 CRT
   bool smooth_filter = false;    // filtrado bilineal al escalar la imagen
   bool fullscreen = false;
   int volume = 100;              // 0..100, sonido del juego

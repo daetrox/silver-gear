@@ -309,7 +309,9 @@ void Config::Load()
     else if (key == "pgxp") pgxp = b;
     else if (key == "pgxp_cpu") pgxp_cpu = b;
     else if (key == "texture_filter") texture_filter = val;
-    else if (key == "side_art") side_art = b;
+    else if (key == "side_art") side_mode = b ? 1 : 0; // configuraciones antiguas
+    else if (key == "side_mode") side_mode = std::clamp(std::atoi(val.c_str()), 0, 2);
+    else if (key == "screen_filter") screen_filter = std::clamp(std::atoi(val.c_str()), 0, 2);
     else if (key == "widescreen") widescreen = b;
     else if (key == "smooth_filter") smooth_filter = b;
     else if (key == "fullscreen") fullscreen = b;
@@ -359,7 +361,8 @@ void Config::Save() const
   out << "pgxp=" << pgxp << "\n";
   out << "pgxp_cpu=" << pgxp_cpu << "\n";
   out << "texture_filter=" << texture_filter << "\n";
-  out << "side_art=" << side_art << "\n";
+  out << "side_mode=" << side_mode << "\n";
+  out << "screen_filter=" << screen_filter << "\n";
   out << "widescreen=" << widescreen << "\n";
   out << "smooth_filter=" << smooth_filter << "\n";
   out << "fullscreen=" << fullscreen << "\n";

@@ -7,6 +7,7 @@ uniform vec4 uColor;
 uniform vec4 uColor2;
 uniform vec4 uRect;   // x, y, w, h en píxeles
 uniform vec4 uParam;
+uniform vec4 uUV;     // modo Image: coordenadas de textura de la imagen (u0, v0, u1, v1)
 uniform sampler2D uTex;
 in vec2 vUV;
 in vec2 vPix;
@@ -299,7 +300,54 @@ void main()
   }
   else if (uMode == 2)
   {
-    fragColor = vec4(texture(uTex, uv).rgb, 1.0) * uColor;
+    // Imagen del juego. uParam.x = filtro: 0 ninguno, 1 líneas de barrido, 2 CRT, 3 ambiente
+    // (desenfocada y oscura, para los laterales); uParam.y = líneas de la imagen original.
+    int mode = int(uParam.x + 0.5);
+    vec2 q = (vPix - uRect.xy) / uRect.zw;
+    if (mode == 2)
+    {
+      // Curvatura del tubo; fuera de la pantalla curvada, negro con las esquinas redondeadas.
+      vec2 c = q * 2.0 - 1.0;
+      c *= 1.0 + 0.045 * dot(c, c);
+      q = c * 0.5 + 0.5;
+      vec2 e = min(q, 1.0 - q) * uRect.zw;
+      if (min(e.x, e.y) < 0.0)
+      {
+        fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+      }
+    }
+    vec2 tuv = mix(uUV.xy, uUV.zw, q);
+    vec3 col = texture(uTex, tuv).rgb;
+    if (mode == 3)
+    {
+      vec2 span = (uUV.zw - uUV.xy) * 0.035;
+      col = vec3(0.0);
+      for (int i = 0; i < 16; i++)
+      {
+        float a = float(i) * 2.399963; // ángulo áureo
+        float r = sqrt((float(i) + 0.5) / 16.0);
+        col += texture(uTex, tuv + vec2(cos(a), sin(a)) * span * r * 6.0).rgb;
+      }
+      col = col / 16.0 * 0.4;
+    }
+    if (mode == 1 || mode == 2)
+    {
+      float line = fract(q.y * uParam.y);
+      float scan = 0.62 + 0.38 * sin(PI * line);
+      col *= scan * 1.18;
+    }
+    if (mode == 2)
+    {
+      // Máscara de apertura (tríadas RGB) y viñeta.
+      int m = int(mod(gl_FragCoord.x, 3.0));
+      col *= m == 0 ? vec3(1.08, 0.9, 0.9) : m == 1 ? vec3(0.9, 1.08, 0.9) : vec3(0.9, 0.9, 1.08);
+      vec2 c = q * 2.0 - 1.0;
+      col *= 1.0 - 0.35 * dot(c * c, vec2(0.6, 0.9));
+      vec2 e = min(q, 1.0 - q) * uRect.zw;
+      col *= smoothstep(0.0, 6.0, min(e.x, e.y));
+    }
+    fragColor = vec4(col, 1.0) * uColor;
   }
   else if (uMode == 3) fragColor = brush(uv);
   else if (uMode == 4) fragColor = enso(uv);

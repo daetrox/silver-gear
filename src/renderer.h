@@ -90,8 +90,10 @@ public:
   void Rect(float x, float y, float w, float h, UiMode mode, Color c, Color c2 = {0, 0, 0, 0},
             float p0 = 0, float p1 = 0, float p2 = 0, float p3 = 0);
   void DrawIcon(Icon icon, float x, float y, float size, Color c, float p1 = 0);
+  // `filter`: 0 ninguno, 1 líneas de barrido, 2 CRT, 3 ambiente (desenfocada y oscura); `lines` = líneas
+  // de la imagen original (para las líneas de barrido).
   void Image(GLuint tex, float x, float y, float w, float h, float u0, float v0, float u1, float v1,
-             bool smooth);
+             bool smooth, int filter = 0, float lines = 240);
   // Devuelve el ancho dibujado. `effect` > 0 activa el desgaste tipo pincel (logotipo).
   float Text(const Font& font, const std::string& text, float x, float y, float size, Color c,
              Align align = Align::Left, Color c2 = {0, 0, 0, 0}, float effect = 0);
