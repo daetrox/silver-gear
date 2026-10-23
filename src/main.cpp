@@ -1230,6 +1230,21 @@ void App::StartGame(int slot)
     // SILVER_TEST_POKE_FROM=N: sólo a partir del frame N.
     const char* poke_frames = std::getenv("SILVER_TEST_POKE_FRAMES");
     const char* poke_from = std::getenv("SILVER_TEST_POKE_FROM");
+    // SILVER_TEST_POKESTR="800ac568=select" escribe una cadena (con su cero final), con las mismas
+    // ventanas de frames que SILVER_TEST_POKE.
+    if (const char* ps = std::getenv("SILVER_TEST_POKESTR");
+        ps && ram && (!poke_frames || m_emu.FramesRun() < static_cast<uint64_t>(std::atoll(poke_frames))) &&
+        (!poke_from || m_emu.FramesRun() >= static_cast<uint64_t>(std::atoll(poke_from))))
+    {
+      const std::string item = ps;
+      if (const size_t eq = item.find('='); eq != std::string::npos)
+      {
+        const uint32_t addr = std::stoul(item.substr(0, eq), nullptr, 16) & 0x1FFFFF;
+        const std::string text = item.substr(eq + 1);
+        if (addr + text.size() + 1 <= n)
+          std::memcpy(const_cast<uint8_t*>(ram) + addr, text.c_str(), text.size() + 1);
+      }
+    }
     if (const char* poke = std::getenv("SILVER_TEST_POKE");
         poke && ram && (!poke_frames || m_emu.FramesRun() < static_cast<uint64_t>(std::atoll(poke_frames))) &&
         (!poke_from || m_emu.FramesRun() >= static_cast<uint64_t>(std::atoll(poke_from))))
