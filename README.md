@@ -12,13 +12,11 @@
   <img src="https://img.shields.io/badge/sin%20fines%20de%20lucro-%E2%9D%A4-a31515" alt="Sin fines de lucro">
 </p>
 
-> [!WARNING]
-> **En desarrollo y sin publicar.** El fondo del menú lo genera `tools/make_background.py` a partir de
-> la ilustración de la base nevada de daetrox (`tools/photo/base-nevada.png`), con el rótulo propio
-> «SILVER GEAR». Para distribuir: `make_background.py --publicable` borra el emblema del zorro (recuerda
-> al de FOXHOUND, de Konami); si la ilustración se hizo con IA, revisar los términos de la herramienta.
-> Las bandas y los iconos de los botones siguen saliendo de la maqueta antigua (`tools/source.png`):
-> confirmar que son propios antes de publicar.
+> [!NOTE]
+> **En desarrollo.** El fondo del menú lo genera `tools/make_background.py` a partir de la ilustración
+> de la base nevada de daetrox (`tools/photo/base-nevada.png`), con el rótulo propio «SILVER GEAR» y sin
+> el emblema del hangar; las bandas e iconos de los botones los dibuja `tools/make_buttons.py`. No se
+> incluye ningún arte, logotipo ni recurso de Konami.
 
 ---
 

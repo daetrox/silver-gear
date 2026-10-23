@@ -5,7 +5,8 @@ Por defecto parte de tools/photo/base-nevada.png, la ilustración «limpia» del
 la montaña nevada, soldados con camuflaje invernal y helicópteros; sin logotipo ni botones):
 
   - borra el texto ilegible que la generación dejó encima del emblema del hangar;
-  - con --publicable, borra también el emblema del zorro (recuerda al de FOXHOUND, de Konami);
+  - borra también el emblema del zorro del hangar, que recuerda al de FOXHOUND (de Konami); con
+    --con-emblema se conserva (sólo para uso personal);
   - gradúa la imagen hacia tonos más fríos y oscurece la derecha para el rótulo y los botones, que el
     launcher dibuja encima en las posiciones de la maqueta (x 1075..1588);
   - pone arriba a la derecha el rótulo propio «SILVER GEAR» (el logotipo de Metal Gear Solid es de
@@ -14,7 +15,7 @@ la montaña nevada, soldados con camuflaje invernal y helicópteros; sin logotip
 Con --noruega usa en su lugar la foto de dominio público tools/photo/arctic-angels-norway.jpg (ver
 tools/photo/CREDITOS.txt), reflejada y con una gradación de noche ártica.
 
-Requiere: numpy, pillow, opencv-python. Uso: python3 tools/make_background.py [--publicable] [--noruega]
+Requiere: numpy, pillow, opencv-python. Uso: python3 tools/make_background.py [--con-emblema] [--noruega]
 """
 import os
 import sys
@@ -26,7 +27,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..")
 W, H = 1672, 941
-PUBLIC = "--publicable" in sys.argv
+PUBLIC = "--con-emblema" not in sys.argv
 NORWAY = "--noruega" in sys.argv
 
 yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
@@ -184,4 +185,4 @@ out = Image.composite(Image.new("RGB", (W, H), (12, 14, 18)), out, ink_mask)
 
 dst = os.path.join(ROOT, "assets", "ui", "background_clean.jpg")
 out.save(dst, quality=92)
-print("Fondo generado en", os.path.abspath(dst), "(publicable)" if PUBLIC else "")
+print("Fondo generado en", os.path.abspath(dst), "" if PUBLIC else "(con el emblema: sólo uso personal)")
